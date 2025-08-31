@@ -92,88 +92,146 @@ Agente --> API : respuesta
 
 ```plantuml
 @startuml
-title Arquitectura del Agente Conversacional - con RAG (FAISS)
+title Arquitectura del Agente Conversacional - RAG (FAISS) + MCP + Orquestación mínima
 
-interface Herramienta {
-  + ejecutar(entrada: String): String
+' ====== Contrato base ======
+interface Herramienta { 
+  + ejecutar(entrada : String) : String 
 }
 
-class Pregunta {
-+ texto: String
+class Pregunta { + texto : String }
+class Respuesta { + texto : String }
+
+class ModeloLenguaje { 
+  + decidirAccion(contexto : String) : Accion
+  + generarRespuesta(contexto : String) : String
 }
 
-class Respuesta {
-+ texto: String
+class MemoriaConversacional { 
+  + guardarInteraccion(p : Pregunta, r : Respuesta) : void
+  + obtenerContexto() : String
 }
 
-class ModeloLenguaje {
-  + decidirAccion(contexto: String): Accion
-  + generarRespuesta(contexto: String): String
+class AgenteConversacional { 
+  - modelo : ModeloLenguaje
+  - memoria : MemoriaConversacional
+  - herramientas : List<Herramienta>
+  - prompt : PromptTemplate
+  - parser : OutputParser
+  - router : ToolRouter
+  - logger : Logger
+  + procesarConsulta(p : Pregunta) : Respuesta
 }
 
-class MemoriaConversacional {
-  + guardarInteraccion(p: Pregunta, r: Respuesta): void
-  + obtenerContexto(): String
+class ControladorConversacion { 
+  - agente : AgenteConversacional
+  + manejarPregunta(p : Pregunta) : Respuesta
 }
 
-class AgenteConversacional {
-  - modelo: ModeloLenguaje
-  - memoria: MemoriaConversacional
-  - herramientas: List<Herramienta>
-  + procesarConsulta(p: Pregunta): Respuesta
+' ====== Tools existentes ======
+class HerramientaBusqueda { + ejecutar(entrada : String) : String }
+class HerramientaBBDD { + ejecutar(entrada : String) : String }
+class HerramientaConReintento { - herramientaReal : Herramienta + ejecutar(entrada : String) : String }
+class HerramientaRAG { - retriever : RetrieverFAISS - llm : ModeloLenguaje + ejecutar(entrada : String) : String }
+class RetrieverFAISS { - vectorDB : BaseVectorialFAISS + recuperarContexto(consulta : String) : String }
+class BaseVectorialFAISS { - documentos : List<String> - embeddings : ModeloEmbeddings + buscar(embedding : List<Float>) : List<String> }
+class ModeloEmbeddings { + embed(texto : String) : List<Float> }
+
+' ====== NUEVO: Tool MCP y cliente ======
+class HerramientaMCP implements Herramienta {
+  - client : MCPPredictClient
+  - serializer : PayloadSerializer
+  - logger : Logger
+  + ejecutar(entrada : String) : String
 }
 
-class ControladorConversacion {
-  - agente: AgenteConversacional
-  + manejarPregunta(p: Pregunta): Respuesta
+class MCPPredictClient {
+  - baseUrl : String
+  - auth : APIKeyAuth
+  - timeoutSeconds : int
+  + predict(payload : String) : String
 }
 
-class HerramientaBusqueda {
- + ejecutar(entrada: String): String
-  }
-class HerramientaBBDD {
-+ ejecutar(entrada: String): String
+class APIKeyAuth {
+  - headerName : String
+  - apiKey : String
+  + apply(headers : Map<String,String>) : void
 }
-class HerramientaConReintento {
- - herramientaReal: Herramienta
- + ejecutar(entrada: String): String
-  }
-class HerramientaRAG {
- - retriever: RetrieverFAISS
-  - llm: ModeloLenguaje
-  + ejecutar(entrada: String): String
-  }
-class RetrieverFAISS {
-- vectorDB: BaseVectorialFAISS
-+ recuperarContexto(consulta: String): String
-}
-class BaseVectorialFAISS {
- - documentos: List<String>
-  - embeddings: ModeloEmbeddings
-   + buscar(embedding: List<Float>): List<String>
-    }
-class ModeloEmbeddings {
-+ embed(texto: String): List<Float>
- }
 
+class PayloadSerializer {
+  + buildRequest(entrada : String) : String
+  + parseResponse(json : String) : String
+}
+
+' ====== NUEVO: Orquestación LLM ======
+class PromptTemplate { 
+  + format(contexto : String, pregunta : String, herramientas : List<Herramienta>) : String
+}
+class OutputParser { 
+  + parse(llmOutput : String) : Accion
+}
+class ToolRouter {
+  + seleccionar(herramientas : List<Herramienta>, accion : Accion) : Herramienta
+}
+
+' ====== Utilitarios ======
+class Logger { 
+  + info(msg : String) : void
+  + warn(msg : String) : void
+  + error(msg : String) : void
+}
+class Configuracion {
+  + get(key : String) : String
+}
+
+' ====== Relaciones principales ======
 ControladorConversacion --> AgenteConversacional : delega
 AgenteConversacional --> ModeloLenguaje : usa
 AgenteConversacional --> MemoriaConversacional : contiene
 AgenteConversacional o-- "1..*" Herramienta : usa
-AgenteConversacional --> Pregunta
-AgenteConversacional --> Respuesta
+AgenteConversacional --> PromptTemplate : compone prompt
+AgenteConversacional --> OutputParser : interpreta LLM
+AgenteConversacional --> ToolRouter : selecciona tool
+AgenteConversacional --> Logger : registra
+
 MemoriaConversacional --> Pregunta
 MemoriaConversacional --> Respuesta
+AgenteConversacional --> Pregunta
+AgenteConversacional --> Respuesta
 
 Herramienta <|.. HerramientaBusqueda
 Herramienta <|.. HerramientaBBDD
 Herramienta <|.. HerramientaRAG
 Herramienta <|.. HerramientaConReintento
+Herramienta <|.. HerramientaMCP
+
 HerramientaConReintento *-- Herramienta : reintenta sobre
 HerramientaRAG --> RetrieverFAISS : consulta contexto
 RetrieverFAISS --> BaseVectorialFAISS : búsqueda por vector
 BaseVectorialFAISS --> ModeloEmbeddings : convierte texto a vector
+
+HerramientaMCP --> MCPPredictClient : consume
+MCPPredictClient --> APIKeyAuth : auth
+HerramientaMCP --> PayloadSerializer : JSON
+HerramientaMCP --> Logger : logs
+
+' ====== Notas ======
+note right of AgenteConversacional
+  Flujo: 
+  1) prompt.format(...) 
+  2) LLM decide acción
+  3) parser.parse -> Accion(tool,args)
+  4) router.seleccionar -> invoca tool (incluye MCP si corresponde)
+  5) guarda en Memoria y responde
+end note
+
+note right of HerramientaMCP
+  Invoca POST {baseUrl}/predict
+  Headers: Authorization: ApiKey <key>
+  Body: PayloadSerializer.buildRequest(entrada)
+end note
 @enduml
+
 ```
 
 ---

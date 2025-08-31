@@ -1,0 +1,65 @@
+@startuml
+
+title MCP Service - Endpoint /predict
+
+' ====== Endpoint Controller ======
+class MCPPredictController {
+  - service : PredictionService
+  + post_predict(req : PredictionRequest) : PredictionResponse
+}
+
+' ====== Servicio central ======
+class PredictionService {
+  - pre : Preprocessor
+  - model : MLModel
+  - post : Postprocessor
+  + predict(req : PredictionRequest) : PredictionResponse
+}
+
+' ====== Interfaces de Procesamiento ======
+interface Preprocessor {
+  + transform(features : Map<String,Any>) : Any
+}
+
+interface Postprocessor {
+  + transform(rawOutput : Any) : Map<String,Any>
+}
+
+' ====== Modelo de ML ======
+interface MLModel {
+  + predict(input : Any) : Any
+  + version() : String
+}
+
+class TorchModel implements MLModel {
+  - loadedModel : Any
+  - _version : String
+  + predict(input : Any) : Any
+  + version() : String
+}
+
+class SklearnModel implements MLModel {
+  - loadedModel : Any
+  - _version : String
+  + predict(input : Any) : Any
+  + version() : String
+}
+
+' ====== Esquema Request/Response ======
+class PredictionRequest {
+  + features : Map<String,Any>
+}
+
+class PredictionResponse {
+  + prediction : Any
+  + confidence : float
+  + modelVersion : String
+}
+
+' ====== Relaciones ======
+MCPPredictController --> PredictionService : delega
+PredictionService --> Preprocessor : usa
+PredictionService --> MLModel : ejecuta
+PredictionService --> Postprocessor : usa
+
+@enduml
