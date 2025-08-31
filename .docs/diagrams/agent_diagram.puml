@@ -1,0 +1,83 @@
+@startuml
+title Arquitectura del Agente Conversacional - con RAG (FAISS)
+
+interface Herramienta {
+  + ejecutar(entrada: String): String
+}
+
+class Pregunta {
++ texto: String
+}
+
+class Respuesta {
++ texto: String
+}
+
+class ModeloLenguaje {
+  + decidirAccion(contexto: String): Accion
+  + generarRespuesta(contexto: String): String
+}
+
+class MemoriaConversacional {
+  + guardarInteraccion(p: Pregunta, r: Respuesta): void
+  + obtenerContexto(): String
+}
+
+class AgenteConversacional {
+  - modelo: ModeloLenguaje
+  - memoria: MemoriaConversacional
+  - herramientas: List<Herramienta>
+  + procesarConsulta(p: Pregunta): Respuesta
+}
+
+class ControladorConversacion {
+  - agente: AgenteConversacional
+  + manejarPregunta(p: Pregunta): Respuesta
+}
+
+class HerramientaBusqueda {
+ + ejecutar(entrada: String): String
+  }
+class HerramientaBBDD {
++ ejecutar(entrada: String): String
+}
+class HerramientaConReintento {
+ - herramientaReal: Herramienta
+ + ejecutar(entrada: String): String
+  }
+class HerramientaRAG {
+ - retriever: RetrieverFAISS
+  - llm: ModeloLenguaje
+  + ejecutar(entrada: String): String
+  }
+class RetrieverFAISS {
+- vectorDB: BaseVectorialFAISS
++ recuperarContexto(consulta: String): String
+}
+class BaseVectorialFAISS {
+ - documentos: List<String>
+  - embeddings: ModeloEmbeddings
+   + buscar(embedding: List<Float>): List<String>
+    }
+class ModeloEmbeddings {
++ embed(texto: String): List<Float>
+ }
+
+ControladorConversacion --> AgenteConversacional : delega
+AgenteConversacional --> ModeloLenguaje : usa
+AgenteConversacional --> MemoriaConversacional : contiene
+AgenteConversacional o-- "1..*" Herramienta : usa
+AgenteConversacional --> Pregunta
+AgenteConversacional --> Respuesta
+MemoriaConversacional --> Pregunta
+MemoriaConversacional --> Respuesta
+
+Herramienta <|.. HerramientaBusqueda
+Herramienta <|.. HerramientaBBDD
+Herramienta <|.. HerramientaRAG
+Herramienta <|.. HerramientaConReintento
+HerramientaConReintento *-- Herramienta : reintenta sobre
+HerramientaRAG --> RetrieverFAISS : consulta contexto
+RetrieverFAISS --> BaseVectorialFAISS : búsqueda por vector
+BaseVectorialFAISS --> ModeloEmbeddings : convierte texto a vector
+@enduml

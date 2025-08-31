@@ -1,0 +1,23 @@
+@startuml
+title Diagrama de Alto Nivel - Agente Conversacional
+
+actor Usuario
+rectangle "API / Controlador" as API
+rectangle "Agente Conversacional" as Agente
+database "Memoria\nConversacional" as Memoria
+rectangle "Modelo de Lenguaje\n(LLM)" as LLM
+rectangle "Herramienta RAG\n(FAISS + Embeddings)" as RAG
+database "Herramienta SQL\n(Base de Datos)" as SQL
+rectangle "Herramienta MCP\n(Modelo ML)" as MCP
+rectangle "Logger / Monitoreo" as Logger
+
+Usuario --> API : consulta
+API --> Agente : invoca
+Agente --> Memoria : lee / actualiza
+Agente --> LLM : decide acción
+Agente --> RAG : consulta contexto
+Agente --> SQL : consulta datos
+Agente --> MCP : consulta predicción
+Agente --> Logger : errores / auditoría
+Agente --> API : respuesta
+@enduml
