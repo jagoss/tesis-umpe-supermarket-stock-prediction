@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check if source branch is 'develop'
-        if: github.base_ref == 'main' && (github.head_ref != 'develop' || !startsWith(github.head_ref, 'hotfix/'))
+        if: github.base_ref == 'main' && github.head_ref != 'develop' && !startsWith(github.head_ref, 'hotfix/')
         run: |
           echo "Error: Pull requests to 'main' must originate from 'develop' branch."
           exit 1
