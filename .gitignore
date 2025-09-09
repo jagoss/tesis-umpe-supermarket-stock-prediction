@@ -205,3 +205,12 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Jupyter notebooks
+.notebooks/store-sales-time-series-forecasting/
+.notebooks/submission.csv
+
+#models
+server/models/
+
+
