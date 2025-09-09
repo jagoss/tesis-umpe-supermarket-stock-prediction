@@ -209,3 +209,6 @@ __marimo__/
 # Jupyter notebooks
 .notebooks/store-sales-time-series-forecasting/
 
+#models
+server/models/
+
