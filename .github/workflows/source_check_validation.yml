@@ -3,6 +3,7 @@ on:
   pull_request:
     branches:
       - main
+    types: [opened, synchronize, reopened]
 jobs:
   check_branch:
     runs-on: ubuntu-latest
