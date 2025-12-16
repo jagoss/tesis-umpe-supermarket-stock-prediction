@@ -5,9 +5,8 @@ Maps raw numeric predictions to dated points across the requested window.
 from __future__ import annotations
 
 from datetime import timedelta
-from typing import List
 
-from ...application.dto import PredictStockInput, PredictStockOutput, PredictionPoint
+from ...application.dto import PredictionPoint, PredictStockInput, PredictStockOutput
 from ...application.ports import ModelRawPrediction
 from ...domain.exceptions import PredictionError
 
@@ -15,7 +14,9 @@ from ...domain.exceptions import PredictionError
 class BasicPostprocessor:
     """Converts model outputs into `PredictStockOutput`."""
 
-    def postprocess(self, raw: ModelRawPrediction, original: PredictStockInput) -> PredictStockOutput:
+    def postprocess(
+        self, raw: ModelRawPrediction, original: PredictStockInput
+    ) -> PredictStockOutput:
         """Map raw model values to dated predictions for the requested window.
 
         Args:
@@ -27,6 +28,7 @@ class BasicPostprocessor:
 
         Raises:
             PredictionError: If the number of predictions doesn't match the horizon.
+
         """
         horizon = (original.end_date - original.start_date).days + 1
         if len(raw.values) != horizon:
@@ -34,10 +36,12 @@ class BasicPostprocessor:
                 f"Model returned {len(raw.values)} values but horizon is {horizon}"
             )
 
-        predictions: List[PredictionPoint] = []
+        predictions: list[PredictionPoint] = []
         for i, value in enumerate(raw.values):
             day = original.start_date + timedelta(days=i)
-            predictions.append(PredictionPoint(date=day, quantity=float(value)))
+            # Round to nearest integer and convert to int since quantity represents number of items
+            rounded_quantity = int(round(float(value)))
+            predictions.append(PredictionPoint(date=day, quantity=rounded_quantity))
 
         return PredictStockOutput(
             product_id=original.product_id,

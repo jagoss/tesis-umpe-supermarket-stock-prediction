@@ -33,7 +33,7 @@ class PredictionPoint:
     """A predicted quantity for a specific date."""
 
     date: date
-    quantity: float
+    quantity: int
 
 
 @dataclass(slots=True)
