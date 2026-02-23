@@ -18,8 +18,8 @@
 | **Application** | Complete | `PredictStockUseCase`, DTOs (`PredictStockInput`, `PredictStockOutput`, `PredictionPoint`), Ports (`PreprocessorPort`, `ModelPort`, `PostprocessorPort`) |
 | **Infrastructure – ONNX Model** | Complete | Lazy loading, 4-feature engineering (`horizon_step`, `day_of_week`, `month`, `is_weekend`), batch inference |
 | **Infrastructure – Dummy Model** | Complete | Returns constant values; intended for testing and development |
-| **Infrastructure – Sklearn Model** | Stub | Placeholder feature construction (`[[i] for i in range(horizon)]`); reloads model on every call; explicit `TODO` |
-| **Infrastructure – Torch Model** | Stub | Returns zeros; never loads or uses the model file; explicit `TODO` |
+| **Infrastructure – Sklearn Model** | Stub (to remove) | Placeholder; unnecessary since ONNX is the canonical serving format |
+| **Infrastructure – Torch Model** | Stub (to remove) | Placeholder; unnecessary since ONNX is the canonical serving format |
 | **Infrastructure – Preprocessing** | Complete (minimal) | Computes horizon and forwards identifiers; no advanced feature engineering |
 | **Infrastructure – Postprocessing** | Complete | Maps raw floats to dated `PredictionPoint` objects with rounding |
 | **Infrastructure – Config & DI** | Complete | Environment-based settings, DI container with backend selection, singleton |
@@ -36,13 +36,12 @@
 ### Known Issues in Current Code
 
 1. **Domain entities are dead code** — `StockForecast` and `StockForecastPoint` are defined but never referenced by any other module.
-2. **`sklearn_model.py` feature construction is a placeholder** — does not match the 4-feature format used by the ONNX adapter.
-3. **`torch_model.py` is entirely non-functional** — returns zeros without loading any model.
-4. **`history` field is passed through but ignored** — all model adapters discard the optional history data.
-5. **Dev/test dependencies are undeclared** — `pytest`, `httpx`, `black`, `ruff`, `mypy` are configured in `pyproject.toml` but not listed as dependencies.
-6. **`joblib` inconsistency** — present in `requirements.txt` but missing from `pyproject.toml`.
-7. **`ONNXModel._hash_string_to_int()` is dead code** — defined but never called.
-8. **No production model artifact** — only a toy `example_model.onnx` (255 bytes) exists.
+2. **Sklearn and Torch adapters are unnecessary stubs** — ONNX is the canonical model serving format. Models trained in scikit-learn or PyTorch should be *exported to ONNX* (via `skl2onnx` / `torch.onnx.export`) and served through the existing `ONNXModel` adapter. The stub adapters add dead code and maintenance burden.
+3. **`history` field is passed through but ignored** — all model adapters discard the optional history data.
+4. **Dev/test dependencies are undeclared** — `pytest`, `httpx`, `black`, `ruff`, `mypy` are configured in `pyproject.toml` but not listed as dependencies.
+5. **`joblib` inconsistency** — present in `requirements.txt` but missing from `pyproject.toml`.
+6. **`ONNXModel._hash_string_to_int()` is dead code** — defined but never called.
+7. **No production model artifact** — only a toy `example_model.onnx` (255 bytes) exists.
 
 ---
 
@@ -62,15 +61,22 @@
 2. **Declare Dev/Test Dependencies**
    - Add `[project.optional-dependencies]` section in `pyproject.toml` with `dev` extras:
      `pytest`, `pytest-cov`, `httpx`, `black`, `ruff`, `mypy`, `isort`.
-   - Add `joblib` to `pyproject.toml` main dependencies (currently only in `requirements.txt`).
-   - Add `torch` as an optional dependency group (e.g., `[project.optional-dependencies] torch`).
+   - Remove `joblib` and `torch` from dependencies (no longer needed — ONNX is the only serving format).
 
 3. **Integrate Domain Entities or Remove Them**
    - Option A (recommended): Map `PredictStockOutput` -> `StockForecast` in the use case to properly separate domain from application DTOs.
    - Option B: Remove unused `StockForecastPoint` and `StockForecast` if the DTOs are deemed sufficient.
 
-4. **Clean Up Dead Code**
+4. **Remove Unnecessary Model Adapters & Clean Up Dead Code**
+   - Remove `sklearn_model.py` and `torch_model.py` (stubs). ONNX is the canonical serving
+     format — models trained in any framework are exported to `.onnx` via `skl2onnx` or
+     `torch.onnx.export` and served through the existing `ONNXModel` adapter.
+   - Update `container.py` to remove sklearn/torch backend options (keep `onnx` and `dummy`).
+   - Update `config.py` to remove sklearn/torch default paths.
+   - Remove associated test files (if any) and update `test_container.py`.
    - Remove `ONNXModel._hash_string_to_int()` (unused helper method).
+   - Remove `scikit-learn`, `skl2onnx`, `joblib` from runtime dependencies (only needed
+     at *training* time, not serving time). Keep them in a `training` optional-dependency group.
    - Audit all modules for other unreferenced code.
 
 5. **Synchronize `requirements.txt` with `pyproject.toml`**
@@ -81,59 +87,17 @@
 
 - [ ] Root `README.md` exists and is accurate.
 - [ ] `pip install -e ".[dev]"` installs all development tools.
-- [ ] No dead code remains (`ruff` or manual audit confirms).
+- [ ] `sklearn_model.py`, `torch_model.py`, and related dead code are removed.
+- [ ] `container.py` only supports `onnx` and `dummy` backends.
 - [ ] Domain entities are either properly used or removed.
-- [ ] `requirements.txt` and `pyproject.toml` are in sync.
+- [ ] `requirements.txt` and `pyproject.toml` are in sync (runtime deps are minimal: FastAPI, ONNX Runtime, Pydantic, fastapi-mcp).
+- [ ] No dead code remains (`ruff` or manual audit confirms).
 
 ---
 
-## Phase 2: Complete Model Adapter Implementations
+## Phase 2: ML Training Pipeline & Production Model
 
-**Goal:** Make `SklearnModel` and `TorchModel` adapters fully functional and consistent with `ONNXModel`.
-
-### Tasks
-
-1. **Implement `SklearnModel` Adapter**
-   - Add lazy model loading (load once, cache in memory) matching the ONNX adapter pattern.
-   - Implement proper feature engineering: build the same 4-feature vector (`horizon_step`, `day_of_week`, `month`, `is_weekend`) used by the ONNX adapter, or define a consistent feature contract across adapters.
-   - Validate model file existence at initialization.
-   - Add proper error handling (`PredictionError` wrapping, import checks).
-   - Remove `# pragma: no cover - stub` markers.
-
-2. **Implement `TorchModel` Adapter**
-   - Implement actual model loading (`torch.load()` or `torch.jit.load()`).
-   - Implement inference with proper tensor construction.
-   - Support device selection (CPU/CUDA).
-   - Add lazy loading, path validation, and error handling.
-   - Remove `# pragma: no cover - stub` markers.
-
-3. **Standardize Feature Engineering Across Adapters**
-   - Extract shared feature-building logic into a common utility or move it into the preprocessor.
-   - Consider making `BasicPreprocessor` responsible for building the feature matrix so model adapters receive ready-to-use input.
-
-4. **Write Tests for New Adapters**
-   - `test_sklearn_model.py`: loading, predict happy path, missing model file, feature shape validation.
-   - `test_torch_model.py`: loading, predict happy path, missing model file, device selection.
-   - Update `test_container.py` to cover sklearn and torch backend selection.
-
-5. **Create Example Model Artifacts**
-   - Generate a small `example_sklearn_model.joblib` for testing.
-   - Generate a small `example_torch_model.pt` for testing.
-   - Update `server/models/README.md` if needed.
-
-### Acceptance Criteria
-
-- [ ] `MODEL_BACKEND=sklearn` loads a real model and produces valid predictions.
-- [ ] `MODEL_BACKEND=torch` loads a real model and produces valid predictions.
-- [ ] All adapters share a consistent feature contract.
-- [ ] Test coverage for all model adapters reaches >90%.
-- [ ] Example models exist for all three backends.
-
----
-
-## Phase 3: ML Training Pipeline & Production Model
-
-**Goal:** Build the data processing and model training pipeline that produces a real predictive model for supermarket stock forecasting.
+**Goal:** Build the data processing and model training pipeline that produces a real ONNX model for supermarket stock forecasting.
 
 ### Tasks
 
@@ -145,38 +109,39 @@
 
 2. **Feature Engineering Pipeline**
    - Define the feature set for stock prediction (product metadata, temporal features, lag features, rolling statistics, etc.).
-   - Ensure the feature set aligns with the server's `PreprocessorPort` contract.
+   - Ensure the feature set aligns with the server's `PreprocessorPort` / `ONNXModel` contract.
    - Document the feature schema (input format, expected ranges, encoding).
 
 3. **Model Training**
-   - Select and train a forecasting model (e.g., gradient boosting, LSTM, or time series model).
+   - Select and train a forecasting model (e.g., gradient boosting with scikit-learn, or any framework that exports to ONNX).
    - Implement hyperparameter tuning and cross-validation.
    - Track experiments (consider MLflow, Weights & Biases, or a simple log).
 
-4. **Model Export**
-   - Export the trained model to ONNX format (primary backend).
-   - Optionally export to sklearn joblib and/or PyTorch formats.
+4. **Model Export to ONNX**
+   - Export the trained model to `.onnx` using the appropriate converter (`skl2onnx`, `torch.onnx.export`, `tf2onnx`, etc.).
+   - Validate the exported ONNX model with `onnx.checker.check_model()`.
    - Generate `model_info.json` metadata (version, training date, metrics, feature schema).
+   - Place the production model in `server/models/`.
 
 5. **Model Validation**
-   - Create a validation script that loads the exported model via the server's adapter and verifies predictions against a test set.
+   - Create a validation script that loads the exported ONNX model via the server's `ONNXModel` adapter and verifies predictions against a test set.
    - Define minimum accuracy/quality thresholds.
 
 6. **History Data Integration**
-   - Update model adapters (or the preprocessor) to actually use the optional `history` field from `PreprocessedData`.
+   - Update `ONNXModel` (or the preprocessor) to actually use the optional `history` field from `PreprocessedData`.
    - Ensure the HTTP schema's `HistoryPoint` data flows through to model inference.
 
 ### Acceptance Criteria
 
 - [ ] A reproducible training pipeline exists (script or notebook).
-- [ ] At least one production-quality model artifact is generated.
+- [ ] At least one production-quality `.onnx` model artifact is generated.
 - [ ] Model evaluation metrics are documented (MAE, RMSE, or equivalent).
 - [ ] The `history` field is integrated into predictions when provided.
-- [ ] `model_info.json` metadata accompanies every model artifact.
+- [ ] `model_info.json` metadata accompanies the model artifact.
 
 ---
 
-## Phase 4: CI/CD Pipeline & Automated Quality Gates
+## Phase 3: CI/CD Pipeline & Automated Quality Gates
 
 **Goal:** Automate testing, linting, and quality checks on every push/PR.
 
@@ -215,7 +180,7 @@
 
 ---
 
-## Phase 5: Containerization & Deployment
+## Phase 4: Containerization & Deployment
 
 **Goal:** Package the prediction server for reproducible deployment and set up the Onyx integration environment.
 
@@ -259,7 +224,7 @@
 
 ---
 
-## Phase 6: Onyx Integration & End-to-End Validation
+## Phase 5: Onyx Integration & End-to-End Validation
 
 **Goal:** Complete the integration with Onyx as the conversational AI frontend, validated end-to-end.
 
@@ -305,7 +270,7 @@
 
 ---
 
-## Phase 7: Hardening & Production Readiness
+## Phase 6: Hardening & Production Readiness
 
 **Goal:** Prepare the system for production use with observability, security, and resilience.
 
@@ -353,32 +318,44 @@
 | Phase | Priority | Effort Estimate | Dependencies |
 |---|---|---|---|
 | **Phase 1:** Foundation & Housekeeping | High | Small (1–2 days) | None |
-| **Phase 2:** Model Adapters Completion | Medium | Medium (2–3 days) | Phase 1 |
-| **Phase 3:** ML Training Pipeline | High | Large (1–2 weeks) | Phase 2 |
-| **Phase 4:** CI/CD Pipeline | High | Small (1–2 days) | Phase 1 |
-| **Phase 5:** Containerization & Deployment | High | Medium (2–3 days) | Phase 4 |
-| **Phase 6:** Onyx Integration & E2E | High | Medium (2–3 days) | Phase 5 |
-| **Phase 7:** Hardening & Production Readiness | Medium | Medium (3–5 days) | Phase 6 |
+| **Phase 2:** ML Training Pipeline | High | Large (1–2 weeks) | Phase 1 |
+| **Phase 3:** CI/CD Pipeline | High | Small (1–2 days) | Phase 1 |
+| **Phase 4:** Containerization & Deployment | High | Medium (2–3 days) | Phase 3 |
+| **Phase 5:** Onyx Integration & E2E | High | Medium (2–3 days) | Phase 4 |
+| **Phase 6:** Hardening & Production Readiness | Medium | Medium (3–5 days) | Phase 5 |
 
 ### Recommended Execution Order
 
 ```
-Phase 1 ──► Phase 4 ──► Phase 2 ──► Phase 3
-                │                      │
-                ▼                      ▼
-             Phase 5 ◄─────────── Phase 3
-                │
-                ▼
-             Phase 6
-                │
-                ▼
-             Phase 7
+             ┌──► Phase 2 (ML Pipeline) ──┐
+Phase 1 ─────┤                             ├──► Phase 4 ──► Phase 5 ──► Phase 6
+             └──► Phase 3 (CI/CD) ─────────┘
 ```
 
-**Phases 1 and 4** can be done in parallel and should be tackled first — they establish the quality baseline and automation that everything else builds on.
+**Phase 1** is the prerequisite for everything — it cleans up dead code (including the unnecessary sklearn/torch adapters) and establishes the project baseline.
 
-**Phase 2** (model adapters) and **Phase 3** (training pipeline) can partially overlap: the adapter work defines the interface that the training pipeline must produce models for.
+**Phases 2 and 3** can run in parallel after Phase 1: Phase 2 builds the training pipeline and production model, while Phase 3 sets up automated quality gates.
 
-**Phase 5** (Docker) depends on having CI working, and **Phase 6** (Onyx) depends on having a deployable server.
+**Phase 4** (Docker) depends on both having CI working and a production model available.
 
-**Phase 7** (hardening) is the final layer before production launch.
+**Phase 5** (Onyx) depends on having a deployable server.
+
+**Phase 6** (hardening) is the final layer before production launch.
+
+---
+
+## Architectural Decision: ONNX as the Single Serving Format
+
+The original codebase included stub adapters for scikit-learn (`sklearn_model.py`) and
+PyTorch (`torch_model.py`). These are removed in Phase 1 because **ONNX is the canonical
+model serving format**:
+
+- **ONNX Runtime** is optimized for production inference (faster, lower memory, hardware acceleration).
+- Models trained in *any* framework (scikit-learn, PyTorch, TensorFlow, XGBoost, etc.)
+  can be exported to `.onnx` using standard converters (`skl2onnx`, `torch.onnx.export`, `tf2onnx`).
+- Maintaining a single inference adapter eliminates feature-engineering divergence, reduces
+  test surface, and simplifies the DI container.
+- Training-time dependencies (`scikit-learn`, `skl2onnx`, `torch`) belong in the training
+  pipeline (Phase 2), not in the serving application.
+
+This follows the principle: **train anywhere, serve with ONNX**.
