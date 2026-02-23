@@ -1,8 +1,11 @@
 fastapi>=0.115,<0.116
 uvicorn[standard]>=0.30,<0.32
 pydantic>=2.6,<3.0
+onnx>=1.20.0
+onnxruntime>=1.18,<2.0
 
 # Optional backends (uncomment if you plan to use them)
 joblib>=1.3,<2.0  # for sklearn model loading
-# scikit-learn>=1.4,<2.0
+scikit-learn>=1.4,<2.0  # for example ONNX model generation
+skl2onnx>=1.16,<2.0  # for sklearn to ONNX conversion
 # torch>=2.2,<3.0

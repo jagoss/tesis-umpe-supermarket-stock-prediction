@@ -31,7 +31,7 @@ class PredictionRequest(BaseModel):
 class PredictionPoint(BaseModel):
     """A single forecasted quantity for a specific date."""
     date: datetime.date
-    quantity: float
+    quantity: int = Field(..., ge=0, description="Predicted quantity (number of items)")
 
 
 class PredictionResponse(BaseModel):
