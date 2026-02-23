@@ -1,0 +1,188 @@
+### Supermarket Stock Prediction API - HTTP Test File
+### 
+### This file can be used with VS Code REST Client extension or similar tools
+### to test the prediction service endpoints.
+###
+### Prerequisites:
+### 1. Set MODEL_BACKEND=onnx environment variable
+### 2. Start the server: python -m server.main
+### 3. Server runs on http://127.0.0.1:8000
+
+@baseUrl = http://127.0.0.1:8000
+@contentType = application/json
+
+### ============================================
+### Health Check Endpoint
+### ============================================
+
+### Health Check - Verify server is running
+GET {{baseUrl}}/health
+
+### ============================================
+### Prediction Endpoints (ONNX Model)
+### ============================================
+
+### Basic Prediction - 7 day forecast
+### Tests ONNX model with minimal required fields
+### Horizon is calculated from start_date to end_date (inclusive)
+POST {{baseUrl}}/predict
+Content-Type: {{contentType}}
+
+{
+  "product_id": "PROD001",
+  "store_id": "STORE001",
+  "start_date": "2024-12-17",
+  "end_date": "2024-12-23"
+}
+
+### ============================================
+
+### Extended Prediction - 14 day forecast
+### Tests ONNX model with longer horizon
+POST {{baseUrl}}/predict
+Content-Type: {{contentType}}
+
+{
+  "product_id": "PROD123",
+  "store_id": "STORE456",
+  "start_date": "2024-12-17",
+  "end_date": "2024-12-30"
+}
+
+### ============================================
+
+### Prediction with Historical Data
+### Tests ONNX model with optional history context
+POST {{baseUrl}}/predict
+Content-Type: {{contentType}}
+
+{
+  "product_id": "PROD789",
+  "store_id": "STORE789",
+  "start_date": "2024-12-17",
+  "end_date": "2024-12-31",
+  "history": [
+    {
+      "date": "2024-12-10",
+      "quantity": 45.5
+    },
+    {
+      "date": "2024-12-11",
+      "quantity": 48.2
+    },
+    {
+      "date": "2024-12-12",
+      "quantity": 52.1
+    },
+    {
+      "date": "2024-12-13",
+      "quantity": 50.8
+    },
+    {
+      "date": "2024-12-14",
+      "quantity": 55.3
+    },
+    {
+      "date": "2024-12-15",
+      "quantity": 58.7
+    },
+    {
+      "date": "2024-12-16",
+      "quantity": 60.2
+    }
+  ]
+}
+
+### ============================================
+
+### Monthly Forecast - 30 day prediction
+### Tests ONNX model with full month horizon
+POST {{baseUrl}}/predict
+Content-Type: {{contentType}}
+
+{
+  "product_id": "PROD_MONTHLY",
+  "store_id": "STORE_MONTHLY",
+  "start_date": "2024-12-17",
+  "end_date": "2025-01-15"
+}
+
+### ============================================
+
+### Weekend Prediction - Short horizon over weekend
+### Tests ONNX model's weekend feature handling
+### Note: 2024-12-20 is Friday, 2024-12-22 is Sunday (includes weekend)
+POST {{baseUrl}}/predict
+Content-Type: {{contentType}}
+
+{
+  "product_id": "PROD_WEEKEND",
+  "store_id": "STORE_WEEKEND",
+  "start_date": "2024-12-20",
+  "end_date": "2024-12-22"
+}
+
+### ============================================
+### Error Cases (for testing validation)
+### ============================================
+
+### Invalid Request - Missing required field
+POST {{baseUrl}}/predict
+Content-Type: {{contentType}}
+
+{
+  "product_id": "PROD001",
+  "start_date": "2024-12-17",
+  "end_date": "2024-12-23"
+}
+
+### ============================================
+
+### Invalid Request - End date before start date
+POST {{baseUrl}}/predict
+Content-Type: {{contentType}}
+
+{
+  "product_id": "PROD001",
+  "store_id": "STORE001",
+  "start_date": "2024-12-23",
+  "end_date": "2024-12-17"
+}
+
+### ============================================
+
+### Invalid Request - Empty product_id
+POST {{baseUrl}}/predict
+Content-Type: {{contentType}}
+
+{
+  "product_id": "",
+  "store_id": "STORE001",
+  "start_date": "2024-12-17",
+  "end_date": "2024-12-23"
+}
+
+### ============================================
+### Notes:
+### 
+### 1. To use ONNX backend, set environment variable before starting server:
+###    Windows PowerShell: $env:MODEL_BACKEND="onnx"
+###    Windows CMD: set MODEL_BACKEND=onnx
+###    Linux/Mac: export MODEL_BACKEND=onnx
+###
+### 2. To use custom ONNX model:
+###    $env:MODEL_BACKEND="onnx"
+###    $env:MODEL_PATH="path/to/your/model.onnx"
+###
+### 3. The ONNX model expects features:
+###    - horizon_step (1 to N, calculated from date range)
+###    - day_of_week (0=Monday, 6=Sunday)
+###    - month (1-12)
+###    - is_weekend (1.0 if Sat/Sun, 0.0 otherwise)
+###
+### 4. The horizon is automatically calculated from start_date to end_date (inclusive)
+###    Example: start_date="2024-12-17", end_date="2024-12-23" = 7 days
+###
+### 5. The model outputs predicted quantities for each day in the date range
+### ============================================
+
