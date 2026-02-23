@@ -1,6 +1,8 @@
 """Application ports (interfaces) for Clean Architecture.
 
 These define the contracts that infrastructure adapters must implement.
+The postprocessor returns a domain-level ``StockForecast`` entity; the use case
+is responsible for mapping it to the application DTO (``PredictStockOutput``).
 """
 from __future__ import annotations
 
@@ -8,7 +10,8 @@ from dataclasses import dataclass
 from datetime import date
 from typing import List, Optional, Protocol, Tuple
 
-from .dto import PredictStockInput, PredictStockOutput
+from ..domain.entities import StockForecast
+from .dto import PredictStockInput
 
 
 @dataclass(slots=True)
@@ -31,9 +34,9 @@ class ModelRawPrediction:
 
 
 class PreprocessorPort(Protocol):
-    """Transforms `PredictStockInput` into `PreprocessedData`."""
+    """Transforms ``PredictStockInput`` into ``PreprocessedData``."""
 
-    def preprocess(self, data: PredictStockInput) -> PreprocessedData:  # pragma: no cover - pure contract
+    def preprocess(self, data: PredictStockInput) -> PreprocessedData:  # pragma: no cover
         """Transform application input into model-ready features."""
         ...
 
@@ -41,14 +44,18 @@ class PreprocessorPort(Protocol):
 class ModelPort(Protocol):
     """Predicts from preprocessed features and returns raw outputs."""
 
-    def predict(self, data: PreprocessedData) -> ModelRawPrediction:  # pragma: no cover - pure contract
+    def predict(self, data: PreprocessedData) -> ModelRawPrediction:  # pragma: no cover
         """Produce raw predictions from preprocessed features."""
         ...
 
 
 class PostprocessorPort(Protocol):
-    """Maps raw outputs to the application-level `PredictStockOutput`."""
+    """Maps raw model outputs to a domain-level ``StockForecast`` entity.
 
-    def postprocess(self, raw: ModelRawPrediction, original: PredictStockInput) -> PredictStockOutput:  # pragma: no cover - pure contract
-        """Convert raw model outputs to the application-level forecast DTO."""
+    The use case is responsible for converting the resulting ``StockForecast``
+    into the application DTO (``PredictStockOutput``).
+    """
+
+    def postprocess(self, raw: ModelRawPrediction, original: PredictStockInput) -> StockForecast:  # pragma: no cover
+        """Convert raw model outputs to a domain ``StockForecast`` entity."""
         ...

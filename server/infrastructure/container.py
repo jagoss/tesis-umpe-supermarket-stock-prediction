@@ -1,4 +1,12 @@
-"""Simple dependency container to wire the use case and adapters."""
+"""Simple dependency container to wire the use case and adapters.
+
+Supported model backends:
+- ``onnx`` (default): ONNX Runtime — canonical serving format.
+- ``dummy``: constant-value predictor for testing and development.
+
+Models trained in any framework (scikit-learn, PyTorch, TensorFlow, etc.)
+should be exported to ``.onnx`` and served through the ONNX adapter.
+"""
 from __future__ import annotations
 
 from ..application.ports import ModelPort, PostprocessorPort, PreprocessorPort
@@ -6,8 +14,6 @@ from ..application.use_cases.predict_stock import PredictStockUseCase
 from .config import Settings, load_settings
 from .models.dummy_model import DummyModel
 from .models.onnx_model import ONNXModel
-from .models.sklearn_model import SklearnModel
-from .models.torch_model import TorchModel
 from .postprocessing.basic_postprocessor import BasicPostprocessor
 from .preprocessing.basic_preprocessor import BasicPreprocessor
 
@@ -18,11 +24,18 @@ _singleton_uc: PredictStockUseCase | None = None
 def _select_model(settings: Settings) -> ModelPort:
     """Select the model backend based on runtime settings.
 
+    Only ``onnx`` and ``dummy`` are supported. Models trained in other
+    frameworks must be exported to ONNX (via ``skl2onnx``, ``torch.onnx.export``,
+    ``tf2onnx``, etc.) and served through the ONNX adapter.
+
     Args:
         settings: Service settings loaded from environment variables.
 
     Returns:
-        A concrete `ModelPort` implementation.
+        A concrete ``ModelPort`` implementation.
+
+    Raises:
+        ValueError: If ``settings.model_backend`` is not ``onnx`` or ``dummy``.
 
     """
     backend = settings.model_backend
@@ -30,11 +43,9 @@ def _select_model(settings: Settings) -> ModelPort:
         return DummyModel(constant=settings.default_prediction_value)
     if backend == "onnx":
         return ONNXModel(model_path=settings.model_path)
-    if backend == "sklearn":
-        return SklearnModel(model_path=settings.model_path)
-    if backend == "torch":
-        return TorchModel(model_path=settings.model_path)
-    raise ValueError(f"Unknown MODEL_BACKEND: {backend}")
+    raise ValueError(
+        f"Unknown MODEL_BACKEND: '{backend}'. Supported backends: 'onnx', 'dummy'."
+    )
 
 
 def build_predict_use_case() -> PredictStockUseCase:

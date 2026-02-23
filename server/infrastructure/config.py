@@ -22,11 +22,10 @@ def load_settings() -> Settings:
     """Load settings from environment variables with defaults.
 
     Environment Variables:
-        MODEL_BACKEND: Type of model to use (dummy, onnx, sklearn, torch).
-            Defaults to "onnx".
-        MODEL_PATH: Path to the model artifact file. If not specified, defaults
-            are used based on MODEL_BACKEND.
-        DEFAULT_PREDICTION_VALUE: Constant value for dummy backend predictions.
+        MODEL_BACKEND: Model backend to use — ``onnx`` (default) or ``dummy``.
+        MODEL_PATH: Path to the model artifact file. Defaults are resolved
+            based on ``MODEL_BACKEND`` when not set.
+        DEFAULT_PREDICTION_VALUE: Constant value returned by the ``dummy`` backend.
 
     Returns:
         Settings instance with loaded configuration.
@@ -77,18 +76,15 @@ def _get_default_model_path(backend: str) -> str:
     """Get the default model path for a given backend.
 
     Args:
-        backend: The model backend type.
+        backend: The model backend type (``onnx`` or ``dummy``).
 
     Returns:
-        Absolute path to the model artifact.
+        Absolute path to the model artifact, or an empty string for ``dummy``.
 
     """
-    project_root = _get_project_root()
-    defaults = {
-        "onnx": project_root / "server" / "models" / "example_model.onnx",
-        "sklearn": project_root / "server" / "models" / "sklearn_model.joblib",
-        "torch": project_root / "server" / "models" / "torch_model.pt",
-        "dummy": "",  # Dummy backend doesn't need a model path
-    }
-    path = defaults.get(backend, "")
-    return str(path) if path else ""
+    if backend == "dummy":
+        return ""
+    if backend == "onnx":
+        project_root = _get_project_root()
+        return str(project_root / "server" / "models" / "example_model.onnx")
+    return ""

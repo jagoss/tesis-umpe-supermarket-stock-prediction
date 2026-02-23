@@ -1,1 +1,1 @@
-"""Model adapters (dummy, sklearn, torch)."""
+"""Model adapters (dummy, onnx)."""
