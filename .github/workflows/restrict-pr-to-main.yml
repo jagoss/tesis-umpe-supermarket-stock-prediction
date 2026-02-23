@@ -1,0 +1,21 @@
+name: Restrict PRs to Main
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check-source-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate source branch
+        run: |
+          SOURCE="${{ github.head_ref }}"
+          if [[ "$SOURCE" == "develop" || "$SOURCE" == hotfix/* ]]; then
+            echo "Branch '$SOURCE' is allowed to merge into main."
+          else
+            echo "ERROR: PRs to 'main' are only allowed from 'develop' or 'hotfix/*' branches."
+            echo "Source branch '$SOURCE' is not permitted."
+            exit 1
+          fi
