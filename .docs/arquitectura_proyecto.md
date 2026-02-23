@@ -1,5 +1,14 @@
 # Arquitectura del Proyecto - Agente Inteligente con MCP
 
+> **Actualización (febrero 2026):** El agente conversacional personalizado con
+> LangChain descrito en este documento ha sido reemplazado por
+> **[Onyx](https://onyx.app)** como plataforma de chat.  Onyx se conecta al
+> servidor de predicción a través de MCP (Model Context Protocol) usando la
+> biblioteca `fastapi-mcp`.  Consultar
+> [onyx_integration.md](onyx_integration.md) para la guía de configuración
+> completa.  El resto de este documento se mantiene como referencia de la
+> arquitectura originalmente planificada.
+
 ## Información General
 - **Proyecto:** Agente Inteligente para Recomendaciones en Supermercados  
 - **Lenguaje principal:** Python 3.11+  
