@@ -196,12 +196,16 @@
 2. **Create `.dockerignore`**
    - Exclude `.git`, `__pycache__`, `.docs`, `agent/`, `tests/`, notebooks, etc.
 
-3. **Create `docker-compose.yml`**
-   - Service: `prediction-server` (build from Dockerfile).
-   - Environment variables: `MODEL_BACKEND`, `MODEL_PATH`, `DEFAULT_PREDICTION_VALUE`.
-   - Port mapping: `8000:8000`.
-   - Volume mount for model artifacts.
-   - Optional: Onyx service (if self-hosted) with MCP server URL configured.
+3. **Create `docker-compose.yml` (with self-hosted Onyx)**
+   - Service `prediction-server`: build from Dockerfile, expose port `8000`.
+   - Service `onyx` (+ its dependencies: Postgres, Redis, workers): use the official
+     Onyx docker-compose as a base. Minimum requirements: 4 vCPU, 10 GB RAM, 32 GB disk.
+   - Shared Docker network so Onyx reaches the prediction server at
+     `http://prediction-server:8000/mcp` (no public exposure needed).
+   - Environment variables: `MODEL_BACKEND`, `MODEL_PATH`, `DEFAULT_PREDICTION_VALUE`,
+     LLM API keys for Onyx.
+   - Volume mounts: model artifacts for the prediction server, Postgres data for Onyx.
+   - See *Architectural Decision: Self-Hosted Onyx* at the end of this document.
 
 4. **Create Deployment Workflow (`.github/workflows/deploy.yml`)**
    - Trigger on push to `main` (after PR merge).
@@ -217,10 +221,12 @@
 ### Acceptance Criteria
 
 - [ ] `docker build -t prediction-server .` produces a working image.
-- [ ] `docker-compose up` starts the server and it passes `/health` check.
+- [ ] `docker-compose up` starts both the prediction server and Onyx.
+- [ ] Prediction server passes `/health` check.
+- [ ] Onyx UI is accessible and functional.
 - [ ] Model artifacts can be mounted as a volume (not baked into the image).
-- [ ] `.env.example` documents all configuration options.
-- [ ] Deploy workflow pushes image to a container registry.
+- [ ] `.env.example` documents all configuration options (prediction server + Onyx + LLM keys).
+- [ ] Deploy workflow pushes the prediction server image to a container registry.
 
 ---
 
@@ -230,14 +236,14 @@
 
 ### Tasks
 
-1. **Onyx Instance Setup**
-   - Deploy or access an Onyx instance (self-hosted or cloud).
-   - Document the Onyx version and configuration used.
+1. **Verify Onyx Instance (from Phase 4)**
+   - Confirm the self-hosted Onyx instance from `docker-compose.yml` is running.
+   - Document the Onyx version and LLM provider configured.
 
 2. **Register MCP Server in Onyx**
    - Follow the steps in `onyx_integration.md`:
      - Admin Panel → Actions → "From MCP server".
-     - URL: `http://<prediction-server-host>:8000/mcp`.
+     - URL: `http://prediction-server:8000/mcp` (internal Docker network).
      - Verify `predict_stock` tool appears.
 
 3. **Create Onyx Agent/Persona**
@@ -252,9 +258,10 @@
    - Document test scenarios and results.
 
 5. **Network & Security Configuration**
-   - Ensure Onyx can reach the prediction server (firewall rules, DNS, etc.).
-   - Consider adding API key authentication to the prediction server if exposed beyond the local network.
-   - Add CORS configuration if needed.
+   - Both services share a Docker network, so no firewall/DNS configuration is needed.
+   - Consider adding API key authentication to the prediction server if it will also be
+     exposed outside the Docker network.
+   - Add CORS configuration if needed for external access.
 
 6. **Update Documentation**
    - Update `onyx_integration.md` with any changes discovered during actual setup.
@@ -359,3 +366,30 @@ model serving format**:
   pipeline (Phase 2), not in the serving application.
 
 This follows the principle: **train anywhere, serve with ONNX**.
+
+---
+
+## Architectural Decision: Self-Hosted Onyx
+
+The project uses the **self-hosted open-source edition** of Onyx rather than Onyx Cloud.
+
+### Why self-hosted
+
+| Factor | Self-Hosted | Cloud |
+|---|---|---|
+| **Cost** | Free (open source). Only LLM API costs, or zero with a local LLM (Llama). | Free 2-week trial, then paid subscription for the life of the project. |
+| **Network simplicity** | Both services in the same `docker-compose.yml` and Docker network. MCP URL is `http://prediction-server:8000/mcp` — no public exposure. | Prediction server must be publicly reachable over the internet (requires auth + TLS + reverse proxy). |
+| **Reproducibility** | A single `docker-compose up` reproduces the entire system. Thesis reviewers can run it locally without accounts or API keys (if using a local LLM). | Depends on a third-party service being available. |
+| **Academic value** | Demonstrates full-stack deployment and integration competency. | "I used a managed service" is a weaker thesis contribution. |
+| **LLM flexibility** | Any LLM: OpenAI API, local Llama, Mistral, etc. Can compare providers. | May have restrictions on LLM choice. |
+| **Data control** | All data (conversations, predictions) stays local. | Data passes through Onyx's cloud infrastructure. |
+| **Availability risk** | You control uptime — no risk of third-party downtime during thesis defense. | If Onyx Cloud has an outage during your defense, there is no fallback. |
+
+### Trade-offs accepted
+
+- **Infrastructure requirements:** Onyx needs at least 4 vCPU, 10 GB RAM, 32 GB disk.
+  Combined with the prediction server, plan for a VM with ~6 vCPU and 12-16 GB RAM.
+- **Operational overhead:** You manage Onyx updates and troubleshooting. Acceptable for a
+  thesis where the deployment itself is part of the deliverable.
+- **No enterprise features:** RBAC, permission syncing, and advanced curation are unavailable.
+  These are irrelevant for a single-user thesis demo.
