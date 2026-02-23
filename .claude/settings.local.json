@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tail:*)",
+      "Bash(cd \"C:/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction\" && python -m pytest server/tests/ -v 2>&1)",
+      "Bash(cd \"C:/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction\" && python -m pytest server/tests/test_config.py -v 2>&1)",
+      "Bash(cd:*)",
+      "Bash(cd \"C:/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction\" && git push -u origin feature/server-unit-tests 2>&1)",
+      "Bash(cd \"C:/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction\" && git push -u https://github.com/jagoss/tesis-umpe-supermarket-stock-prediction.git feature/server-unit-tests 2>&1)",
+      "WebSearch",
+      "WebFetch(domain:docs.onyx.app)",
+      "WebFetch(domain:modelcontextprotocol.github.io)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:medium.com)",
+      "WebFetch(domain:mcpcat.io)",
+      "WebFetch(domain:gofastmcp.com)",
+      "WebFetch(domain:blog.openreplay.com)",
+      "WebFetch(domain:fastapi-mcp.tadata.com)",
+      "Bash(cd /c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction && python -m pytest server/tests/ -v 2>&1)",
+      "Bash(head:*)",
+      "Bash(cd /c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction && python -c \"from fastapi_mcp import FastApiMCP; print\\([m for m in dir\\(FastApiMCP\\) if not m.startswith\\('_'\\)]\\)\" 2>&1)",
+      "Bash(cd /c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction && python -m pytest server/tests/ -v --timeout=30 2>&1)",
+      "Bash(ls:*)"
+    ]
+  }
+}
