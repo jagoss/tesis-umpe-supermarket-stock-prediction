@@ -1,0 +1,73 @@
+"""Tests for infrastructure configuration."""
+from __future__ import annotations
+
+import os
+from unittest.mock import patch
+
+from server.infrastructure.config import Settings, load_settings, _get_default_model_path
+
+
+class TestSettings:
+    def test_dataclass_fields(self) -> None:
+        s = Settings(model_backend="dummy", model_path="/tmp/m.onnx", default_prediction_value=5.0)
+        assert s.model_backend == "dummy"
+        assert s.model_path == "/tmp/m.onnx"
+        assert s.default_prediction_value == 5.0
+
+
+class TestLoadSettings:
+    def test_defaults(self) -> None:
+        with patch.dict(os.environ, {}, clear=True):
+            # Remove any existing env vars that could interfere
+            for key in ("MODEL_BACKEND", "MODEL_PATH", "DEFAULT_PREDICTION_VALUE"):
+                os.environ.pop(key, None)
+            s = load_settings()
+        assert s.model_backend == "onnx"
+        assert s.default_prediction_value == 0.0
+        assert "example_model.onnx" in s.model_path
+
+    def test_backend_from_env(self) -> None:
+        with patch.dict(os.environ, {"MODEL_BACKEND": "dummy"}, clear=False):
+            s = load_settings()
+        assert s.model_backend == "dummy"
+
+    def test_backend_case_insensitive(self) -> None:
+        with patch.dict(os.environ, {"MODEL_BACKEND": "  ONNX  "}, clear=False):
+            s = load_settings()
+        assert s.model_backend == "onnx"
+
+    def test_model_path_from_env_absolute(self) -> None:
+        from pathlib import Path
+
+        # Build a truly absolute path (with drive letter on Windows)
+        abs_path = str(Path("/custom/path/model.onnx").resolve().parent / "model.onnx")
+        with patch.dict(os.environ, {"MODEL_PATH": abs_path}, clear=False):
+            s = load_settings()
+        assert s.model_path == abs_path
+
+    def test_default_prediction_value_from_env(self) -> None:
+        with patch.dict(os.environ, {"DEFAULT_PREDICTION_VALUE": "42.5"}, clear=False):
+            s = load_settings()
+        assert s.default_prediction_value == 42.5
+
+
+class TestGetDefaultModelPath:
+    def test_onnx_default(self) -> None:
+        path = _get_default_model_path("onnx")
+        assert "example_model.onnx" in path
+
+    def test_sklearn_default(self) -> None:
+        path = _get_default_model_path("sklearn")
+        assert "sklearn_model.joblib" in path
+
+    def test_torch_default(self) -> None:
+        path = _get_default_model_path("torch")
+        assert "torch_model.pt" in path
+
+    def test_dummy_empty(self) -> None:
+        path = _get_default_model_path("dummy")
+        assert path == ""
+
+    def test_unknown_backend_empty(self) -> None:
+        path = _get_default_model_path("unknown_backend")
+        assert path == ""
