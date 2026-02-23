@@ -95,9 +95,15 @@
 
 ---
 
-## Phase 2: ML Training Pipeline & Production Model
+## Phase 2: ML Training Pipeline & Production Model *(parallel track)*
 
 **Goal:** Build the data processing and model training pipeline that produces a real ONNX model for supermarket stock forecasting.
+
+> **Execution note:** This phase runs **in parallel** with Phases 3–6. All
+> subsequent phases use the existing `example_model.onnx` (toy linear regression)
+> or the `dummy` backend to validate infrastructure, CI/CD, containerization, and
+> Onyx integration end-to-end. When this phase delivers a production model, the
+> swap is a single file replacement — no code changes needed.
 
 ### Tasks
 
@@ -131,6 +137,11 @@
    - Update `ONNXModel` (or the preprocessor) to actually use the optional `history` field from `PreprocessedData`.
    - Ensure the HTTP schema's `HistoryPoint` data flows through to model inference.
 
+7. **Production Model Swap**
+   - Replace `example_model.onnx` with the production model in `server/models/`.
+   - Update `MODEL_PATH` in `.env.example` and deployment configs if the filename differs.
+   - Run the full E2E validation (Phase 5 tests) with the real model to confirm integration.
+
 ### Acceptance Criteria
 
 - [ ] A reproducible training pipeline exists (script or notebook).
@@ -138,12 +149,16 @@
 - [ ] Model evaluation metrics are documented (MAE, RMSE, or equivalent).
 - [ ] The `history` field is integrated into predictions when provided.
 - [ ] `model_info.json` metadata accompanies the model artifact.
+- [ ] The production model works end-to-end when dropped into the already-deployed stack.
 
 ---
 
 ## Phase 3: CI/CD Pipeline & Automated Quality Gates
 
 **Goal:** Automate testing, linting, and quality checks on every push/PR.
+
+> **Model strategy:** All CI tests run against the `dummy` backend or the toy
+> `example_model.onnx`. No dependency on Phase 2 delivering a production model.
 
 ### Tasks
 
@@ -163,7 +178,7 @@
 
 3. **Verify Current Tests Pass**
    - Run the full test suite locally and fix any failures.
-   - Ensure all tests run in CI without requiring model files or external services.
+   - Ensure all tests run in CI against the `dummy` / `example_model.onnx` backends.
 
 4. **Add Missing Tests**
    - `test_logging.py`: test `configure_logging` function.
@@ -183,6 +198,11 @@
 ## Phase 4: Containerization & Deployment
 
 **Goal:** Package the prediction server for reproducible deployment and set up the Onyx integration environment.
+
+> **Model strategy:** Use `MODEL_BACKEND=onnx` with `example_model.onnx` (or
+> `MODEL_BACKEND=dummy`) to validate the entire Docker and Onyx stack. The
+> production model from Phase 2 is a volume-mounted file swap — no image rebuild
+> required.
 
 ### Tasks
 
@@ -233,6 +253,11 @@
 ## Phase 5: Onyx Integration & End-to-End Validation
 
 **Goal:** Complete the integration with Onyx as the conversational AI frontend, validated end-to-end.
+
+> **Model strategy:** Validate the full conversational flow using the mock ONNX
+> model. Predictions won't be meaningful, but the integration (MCP tool discovery,
+> parameter extraction, response formatting) can be fully tested. Re-run E2E
+> validation after Phase 2 swaps in the production model.
 
 ### Tasks
 
@@ -322,32 +347,36 @@
 
 ## Phase Summary & Recommended Priority
 
-| Phase | Priority | Effort Estimate | Dependencies |
-|---|---|---|---|
-| **Phase 1:** Foundation & Housekeeping | High | Small (1–2 days) | None |
-| **Phase 2:** ML Training Pipeline | High | Large (1–2 weeks) | Phase 1 |
-| **Phase 3:** CI/CD Pipeline | High | Small (1–2 days) | Phase 1 |
-| **Phase 4:** Containerization & Deployment | High | Medium (2–3 days) | Phase 3 |
-| **Phase 5:** Onyx Integration & E2E | High | Medium (2–3 days) | Phase 4 |
-| **Phase 6:** Hardening & Production Readiness | Medium | Medium (3–5 days) | Phase 5 |
+| Phase | Priority | Effort Estimate | Dependencies | Model Used |
+|---|---|---|---|---|
+| **Phase 1:** Foundation & Housekeeping | High | Small (1–2 days) | None | — |
+| **Phase 2:** ML Training Pipeline *(parallel)* | High | Large (1–2 weeks) | Phase 1 | Produces production `.onnx` |
+| **Phase 3:** CI/CD Pipeline | High | Small (1–2 days) | Phase 1 | `dummy` / `example_model.onnx` |
+| **Phase 4:** Containerization & Deployment | High | Medium (2–3 days) | Phase 3 | `example_model.onnx` |
+| **Phase 5:** Onyx Integration & E2E | High | Medium (2–3 days) | Phase 4 | `example_model.onnx` |
+| **Phase 6:** Hardening & Production Readiness | Medium | Medium (3–5 days) | Phase 5 | `example_model.onnx` → swap to production |
 
-### Recommended Execution Order
+### Execution Order
 
 ```
-             ┌──► Phase 2 (ML Pipeline) ──┐
-Phase 1 ─────┤                             ├──► Phase 4 ──► Phase 5 ──► Phase 6
-             └──► Phase 3 (CI/CD) ─────────┘
+Phase 1 ──► Phase 3 ──► Phase 4 ──► Phase 5 ──► Phase 6
+   │         (CI/CD)    (Docker+     (Onyx      (Harden)
+   │                     Onyx)       E2E)
+   │                                              ▲
+   └──► Phase 2 (ML Pipeline) ────────────────────┘
+         runs in parallel                  model swap
 ```
 
-**Phase 1** is the prerequisite for everything — it cleans up dead code (including the unnecessary sklearn/torch adapters) and establishes the project baseline.
+**Phase 1** is the prerequisite for everything — it cleans up dead code (including the
+unnecessary sklearn/torch adapters) and establishes the project baseline.
 
-**Phases 2 and 3** can run in parallel after Phase 1: Phase 2 builds the training pipeline and production model, while Phase 3 sets up automated quality gates.
+**Phases 3 → 4 → 5 → 6** proceed sequentially using the mock ONNX model
+(`example_model.onnx`) or the `dummy` backend. This validates the entire stack —
+CI, Docker, Onyx integration, monitoring — without waiting for a production model.
 
-**Phase 4** (Docker) depends on both having CI working and a production model available.
-
-**Phase 5** (Onyx) depends on having a deployable server.
-
-**Phase 6** (hardening) is the final layer before production launch.
+**Phase 2** runs in parallel on a separate track. When it delivers a production `.onnx`
+model, the swap is a single file replacement (volume-mounted, no image rebuild). A final
+E2E re-validation confirms the production model works within the already-deployed stack.
 
 ---
 
