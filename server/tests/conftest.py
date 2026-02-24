@@ -1,14 +1,16 @@
 """Shared fixtures for server tests."""
-
 from __future__ import annotations
 
 from datetime import date
+from typing import List, Tuple
 
 import pytest
 
 from server.application import (
     ModelRawPrediction,
     PredictStockInput,
+    PredictStockOutput,
+    PredictionPoint,
     PreprocessedData,
 )
 
@@ -27,7 +29,7 @@ def sample_input() -> PredictStockInput:
 @pytest.fixture()
 def sample_input_with_history() -> PredictStockInput:
     """A 3-day prediction input with historical data."""
-    history: list[tuple[date, float]] = [
+    history: List[Tuple[date, float]] = [
         (date(2026, 2, 27), 10.0),
         (date(2026, 2, 28), 12.5),
         (date(2026, 3, 1), 8.0),

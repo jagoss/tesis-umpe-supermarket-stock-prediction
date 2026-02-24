@@ -1,22 +1,12 @@
 name: Type Check
 
 on:
-  push:
-    branches: [develop, main]
-    paths:
-      - "server/**/*.py"
-      - "agent/**/*.py"
-      - "pyproject.toml"
   pull_request:
     types: [opened, synchronize, ready_for_review, reopened]
     paths:
       - "server/**/*.py"
       - "agent/**/*.py"
       - "pyproject.toml"
-
-concurrency:
-  group: typecheck-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   typecheck:
@@ -31,7 +21,9 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install -e ".[dev]"
+        run: |
+          pip install -e ".[dev]"
+          pip install mypy
 
       - name: Run mypy
-        run: mypy server/ --strict
+        run: mypy server/ agent/ --strict

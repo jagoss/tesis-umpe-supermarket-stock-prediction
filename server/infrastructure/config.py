@@ -1,5 +1,4 @@
 """Infrastructure configuration utilities."""
-
 from __future__ import annotations
 
 import os
@@ -38,7 +37,7 @@ def load_settings() -> Settings:
     # Determine default model path based on backend if not explicitly set
     model_path_default = _get_default_model_path(model_backend)
     model_path_env = os.getenv("MODEL_PATH")
-
+    
     # If MODEL_PATH is set, use it (resolve relative paths from project root)
     if model_path_env:
         model_path = model_path_env

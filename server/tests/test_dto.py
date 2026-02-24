@@ -1,10 +1,9 @@
 """Tests for application DTOs."""
-
 from __future__ import annotations
 
 from datetime import date
 
-from server.application import PredictionPoint, PredictStockInput, PredictStockOutput
+from server.application import PredictStockInput, PredictStockOutput, PredictionPoint
 
 
 class TestPredictStockInput:

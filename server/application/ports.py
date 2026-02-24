@@ -4,12 +4,11 @@ These define the contracts that infrastructure adapters must implement.
 The postprocessor returns a domain-level ``StockForecast`` entity; the use case
 is responsible for mapping it to the application DTO (``PredictStockOutput``).
 """
-
 from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
-from typing import Protocol
+from typing import List, Optional, Protocol, Tuple
 
 from server.application.dto import PredictStockInput
 from server.domain import StockForecast
@@ -24,14 +23,14 @@ class PreprocessedData:
     start_date: date
     end_date: date
     horizon: int
-    history: list[tuple[date, float]] | None = None
+    history: Optional[List[Tuple[date, float]]] = None
 
 
 @dataclass(slots=True)
 class ModelRawPrediction:
     """Raw model output vector(s) before post-processing."""
 
-    values: list[float]
+    values: List[float]
 
 
 class PreprocessorPort(Protocol):
@@ -57,8 +56,6 @@ class PostprocessorPort(Protocol):
     into the application DTO (``PredictStockOutput``).
     """
 
-    def postprocess(  # pragma: no cover
-        self, raw: ModelRawPrediction, original: PredictStockInput
-    ) -> StockForecast:
+    def postprocess(self, raw: ModelRawPrediction, original: PredictStockInput) -> StockForecast:  # pragma: no cover
         """Convert raw model outputs to a domain ``StockForecast`` entity."""
         ...

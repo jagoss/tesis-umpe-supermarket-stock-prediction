@@ -4,7 +4,6 @@ Maps raw numeric predictions to dated ``StockForecastPoint`` domain entities,
 producing a ``StockForecast`` aggregate.  The use case layer is responsible for
 converting the domain entity into an application DTO with any final rounding.
 """
-
 from __future__ import annotations
 
 from datetime import timedelta
@@ -16,7 +15,9 @@ from server.domain import PredictionError, StockForecast, StockForecastPoint
 class BasicPostprocessor:
     """Converts raw model outputs into a ``StockForecast`` domain entity."""
 
-    def postprocess(self, raw: ModelRawPrediction, original: PredictStockInput) -> StockForecast:
+    def postprocess(
+        self, raw: ModelRawPrediction, original: PredictStockInput
+    ) -> StockForecast:
         """Map raw model values to a domain forecast across the requested window.
 
         Each raw prediction value is paired with its corresponding date to

@@ -186,34 +186,8 @@ pytest --cov=server --cov-report=term-missing
 ruff check .
 black --check .
 isort --check .
-mypy server/ --strict
+mypy server/
 ```
-
-### Pre-commit Hooks
-
-The project includes a `.pre-commit-config.yaml` that runs `ruff`, `black`,
-`isort`, and `mypy` automatically before each commit.
-
-```bash
-# Install hooks (one-time setup)
-pre-commit install
-
-# Run all hooks manually
-pre-commit run --all-files
-```
-
-### CI Pipelines
-
-Every push to `develop`/`main` and every pull request triggers three
-specialized workflows (path-filtered for efficiency):
-
-| Workflow | File | What it runs |
-|---|---|---|
-| **Lint** | `.github/workflows/lint.yml` | `ruff check`, `black --check`, `isort --check` |
-| **Type Check** | `.github/workflows/typecheck.yml` | `mypy server/ --strict` |
-| **Tests** | `.github/workflows/test.yml` | `pytest` with coverage (Python 3.11 + 3.12 matrix) |
-
-Coverage reports are uploaded as GitHub Actions artifacts.
 
 ### Project Structure
 

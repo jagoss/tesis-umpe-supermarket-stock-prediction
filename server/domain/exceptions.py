@@ -8,15 +8,15 @@ Assumptions:
 - Exceptions are lightweight and carry context in their message.
 - Use specific exceptions over generic ones.
 """
-
 from __future__ import annotations
+
+from typing import Optional
 
 
 class DomainError(Exception):
     """Base class for all domain-specific errors."""
 
-    def __init__(self, message: str, *, cause: BaseException | None = None) -> None:
-        """Create a domain error with a descriptive message and optional cause."""
+    def __init__(self, message: str, *, cause: Optional[BaseException] = None) -> None:
         super().__init__(message)
         self.__cause__ = cause
 

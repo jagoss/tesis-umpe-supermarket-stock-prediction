@@ -1,5 +1,4 @@
 """Tests for DummyModel."""
-
 from __future__ import annotations
 
 from server.application import PreprocessedData

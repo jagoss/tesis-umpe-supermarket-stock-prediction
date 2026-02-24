@@ -3,7 +3,6 @@
 The postprocessor now returns a ``StockForecast`` domain entity with float
 quantities.  Rounding to integer is the use case's responsibility.
 """
-
 from __future__ import annotations
 
 from datetime import date

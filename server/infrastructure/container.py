@@ -7,7 +7,6 @@ Supported model backends:
 Models trained in any framework (scikit-learn, PyTorch, TensorFlow, etc.)
 should be exported to ``.onnx`` and served through the ONNX adapter.
 """
-
 from __future__ import annotations
 
 from server.application import ModelPort, PostprocessorPort, PreprocessorPort
@@ -16,6 +15,7 @@ from server.infrastructure.config import Settings, load_settings
 from server.infrastructure.models import DummyModel, ONNXModel
 from server.infrastructure.postprocessing import BasicPostprocessor
 from server.infrastructure.preprocessing import BasicPreprocessor
+
 
 _singleton_uc: PredictStockUseCase | None = None
 
@@ -42,7 +42,9 @@ def _select_model(settings: Settings) -> ModelPort:
         return DummyModel(constant=settings.default_prediction_value)
     if backend == "onnx":
         return ONNXModel(model_path=settings.model_path)
-    raise ValueError(f"Unknown MODEL_BACKEND: '{backend}'. Supported backends: 'onnx', 'dummy'.")
+    raise ValueError(
+        f"Unknown MODEL_BACKEND: '{backend}'. Supported backends: 'onnx', 'dummy'."
+    )
 
 
 def build_predict_use_case() -> PredictStockUseCase:

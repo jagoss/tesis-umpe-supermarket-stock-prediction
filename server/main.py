@@ -5,7 +5,6 @@ Usage (recommended):
 
 This module allows running via `python -m server.main` as well.
 """
-
 from __future__ import annotations
 
 import uvicorn

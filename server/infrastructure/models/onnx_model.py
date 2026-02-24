@@ -5,7 +5,6 @@ ONNX is the canonical serving format — models trained in any framework
 (scikit-learn, PyTorch, TensorFlow, etc.) are exported to .onnx and served
 through this single adapter.
 """
-
 from __future__ import annotations
 
 from pathlib import Path
@@ -42,7 +41,7 @@ class ONNXModel(ModelPort):
 
         Raises:
             PredictionError: If onnxruntime is not installed or model file not found.
-
+            
         """
         # Resolve to absolute path
         model_path_obj = Path(model_path)
@@ -59,7 +58,7 @@ class ONNXModel(ModelPort):
                         break
                     current = current.parent
             model_path_obj = resolved
-
+        
         self._model_path = model_path_obj
         self._session: Any = None  # onnxruntime.InferenceSession, lazily loaded
 
@@ -79,7 +78,7 @@ class ONNXModel(ModelPort):
 
         Raises:
             PredictionError: If onnxruntime is not installed or model loading fails.
-
+            
         """
         if self._session is not None:
             return self._session
@@ -95,7 +94,8 @@ class ONNXModel(ModelPort):
         try:
             # Create inference session with CPU execution provider
             self._session = ort.InferenceSession(
-                str(self._model_path), providers=["CPUExecutionProvider"]
+                str(self._model_path),
+                providers=["CPUExecutionProvider"]
             )
             return self._session
         except Exception as exc:
@@ -121,7 +121,7 @@ class ONNXModel(ModelPort):
 
         Returns:
             List of float features matching model input expectations.
-
+            
         """
         from datetime import timedelta
 
@@ -160,7 +160,7 @@ class ONNXModel(ModelPort):
 
         Raises:
             PredictionError: If inference fails or output shape is unexpected.
-
+            
         """
         session = self._ensure_session_loaded()
 
@@ -202,3 +202,4 @@ class ONNXModel(ModelPort):
             raise
         except Exception as exc:
             raise PredictionError(f"ONNX inference failed: {exc}") from exc
+

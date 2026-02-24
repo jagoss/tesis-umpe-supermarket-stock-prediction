@@ -2,10 +2,9 @@
 
 Converts application input DTO into model-ready features.
 """
-
 from __future__ import annotations
 
-from server.application import PredictStockInput, PreprocessedData, PreprocessorPort
+from server.application import PreprocessedData, PreprocessorPort, PredictStockInput
 
 
 class BasicPreprocessor(PreprocessorPort):
@@ -19,7 +18,6 @@ class BasicPreprocessor(PreprocessorPort):
 
         Returns:
             PreprocessedData with computed `horizon` and forwarded identifiers.
-
         """
         horizon = (data.end_date - data.start_date).days + 1
         # Ensure non-negative horizon; validation already ensures end >= start.
