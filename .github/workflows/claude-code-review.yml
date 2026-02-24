@@ -3,21 +3,10 @@ name: Claude Code Review
 on:
   pull_request:
     types: [opened, synchronize, ready_for_review, reopened]
-    # Optional: Only run on specific file changes
-    # paths:
-    #   - "src/**/*.ts"
-    #   - "src/**/*.tsx"
-    #   - "src/**/*.js"
-    #   - "src/**/*.jsx"
 
 jobs:
   claude-review:
-    # Optional: Filter by PR author
-    # if: |
-    #   github.event.pull_request.user.login == 'external-contributor' ||
-    #   github.event.pull_request.user.login == 'new-developer' ||
-    #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
-
+    name: Architecture & style review
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -26,10 +15,9 @@ jobs:
       id-token: write
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0
 
       - name: Run Claude Code Review
         id: claude-review
@@ -38,7 +26,53 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: 'code-review@claude-code-plugins'
-          prompt: '/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
-          # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
-          # or https://code.claude.com/docs/en/cli-reference for available options
+          prompt: |
+            /code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}
 
+            When reviewing this Python project, apply these additional criteria on top
+            of the standard code-review checks:
+
+            ## Python Best Practices
+            - PEP 8 compliance (enforced by ruff/black/isort — flag anything they miss)
+            - Proper use of type hints (the project uses mypy --strict)
+            - Docstrings on public classes and functions (Google or NumPy style)
+            - No mutable default arguments
+            - Prefer `from __future__ import annotations` for forward references
+            - Use `datetime.date` / `datetime.datetime`, never raw strings for dates
+
+            ## Clean Architecture (this project follows it strictly)
+            - **Dependency rule**: imports must point inward. Specifically:
+              - `server/domain/` MUST NOT import from `application/`, `infrastructure/`, or `interface/`
+              - `server/application/` MUST NOT import from `infrastructure/` or `interface/`
+              - `server/infrastructure/` MUST NOT import from `interface/`
+              - `server/interface/` may import from any inner layer
+            - New capabilities MUST be defined as `typing.Protocol` in `server/application/ports.py`
+            - Infrastructure adapters implement those protocols — never the reverse
+            - All wiring goes through `server/infrastructure/container.py`
+            - Endpoints must NEVER construct infrastructure objects directly
+
+            ## Domain-Driven Design
+            - Domain entities (`server/domain/`) must be pure — no framework imports
+            - Use frozen dataclasses for value objects and entities
+            - Domain exceptions must extend `DomainError` from `server/domain/exceptions.py`
+            - Ubiquitous language: use domain terms (StockForecast, PredictStock, etc.)
+
+            ## Clean Code
+            - Single Responsibility Principle — each class/function does one thing
+            - Functions should be short and focused (< 30 lines preferred)
+            - No god classes or modules
+            - Meaningful, intention-revealing names
+            - No commented-out code in production
+            - Error handling: use specific exceptions, not bare `except:`
+
+            ## MCP / Onyx Integration
+            - Any endpoint exposed as an MCP tool must have `operation_id` and `tags`
+            - Tool docstrings must start with "Use this tool when..." for LLM guidance
+            - `/health` must always be excluded from MCP tools
+
+            ## Testing
+            - Tests follow the fixture pattern in `server/tests/test_api.py`
+            - Use `MODEL_BACKEND=dummy` in tests — never depend on real model files
+            - Reset the DI singleton between tests (`container_mod._singleton_uc = None`)
+
+            Flag violations as errors. Flag stylistic suggestions as warnings.
