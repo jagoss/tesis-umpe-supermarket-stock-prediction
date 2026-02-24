@@ -1,58 +1,28 @@
-name: CI
+name: Tests
 
 on:
   push:
     branches: [develop, main]
+    paths:
+      - "server/**/*.py"
+      - "agent/**/*.py"
+      - "pyproject.toml"
+      - "requirements.txt"
   pull_request:
     types: [opened, synchronize, ready_for_review, reopened]
+    paths:
+      - "server/**/*.py"
+      - "agent/**/*.py"
+      - "pyproject.toml"
+      - "requirements.txt"
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: test-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  lint:
-    name: Lint (ruff + black + isort)
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install dependencies
-        run: pip install -e ".[dev]"
-
-      - name: Ruff check
-        run: ruff check server/ agent/ --output-format=github
-
-      - name: Black check
-        run: black --check --diff server/ agent/
-
-      - name: isort check
-        run: isort --check --diff server/ agent/
-
-  typecheck:
-    name: Type check (mypy --strict)
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install dependencies
-        run: pip install -e ".[dev]"
-
-      - name: Run mypy
-        run: mypy server/ --strict
-
   test:
-    name: Tests (Python ${{ matrix.python-version }})
+    name: pytest (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
     strategy:
       matrix:

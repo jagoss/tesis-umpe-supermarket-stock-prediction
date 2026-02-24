@@ -202,14 +202,16 @@ pre-commit install
 pre-commit run --all-files
 ```
 
-### CI Pipeline
+### CI Pipelines
 
-Every push to `develop`/`main` and every pull request triggers the unified
-CI workflow (`.github/workflows/ci.yml`), which runs:
+Every push to `develop`/`main` and every pull request triggers three
+specialized workflows (path-filtered for efficiency):
 
-1. **Lint** -- `ruff check`, `black --check`, `isort --check`
-2. **Type check** -- `mypy server/ --strict`
-3. **Tests** -- `pytest` with coverage (Python 3.11 + 3.12 matrix)
+| Workflow | File | What it runs |
+|---|---|---|
+| **Lint** | `.github/workflows/lint.yml` | `ruff check`, `black --check`, `isort --check` |
+| **Type Check** | `.github/workflows/typecheck.yml` | `mypy server/ --strict` |
+| **Tests** | `.github/workflows/test.yml` | `pytest` with coverage (Python 3.11 + 3.12 matrix) |
 
 Coverage reports are uploaded as GitHub Actions artifacts.
 
