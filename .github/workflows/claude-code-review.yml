@@ -27,9 +27,6 @@ jobs:
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: 'code-review@claude-code-plugins'
           allowed_bots: '*'
-          # Token budget: keep costs low for a $20/month Claude subscription
-          max_turns: 2
-          claude_args: '--max-tokens 1500'
           prompt: |
             /code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}
 
