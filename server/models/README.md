@@ -9,12 +9,15 @@ Following Clean Architecture principles, this folder serves as the **storage loc
 ```
 server/
 ├── models/                          # ← Model artifacts (this directory)
-│   └── example_model.onnx          # Example ONNX model (toy linear regression)
+│   ├── example_model.onnx          # Example ONNX model
+│   ├── sklearn_model.joblib        # (optional) Sklearn model
+│   └── torch_model.pt              # (optional) PyTorch model
 │
 └── infrastructure/
     └── models/                      # ← Model adapters (Python code)
-        ├── onnx_model.py           # ONNXModel adapter (canonical serving format)
-        └── dummy_model.py          # DummyModel adapter (constant predictor for testing)
+        ├── onnx_model.py           # ONNXModel adapter
+        ├── sklearn_model.py        # SklearnModel adapter
+        └── torch_model.py          # TorchModel adapter
 ```
 
 ## Current Models
@@ -118,14 +121,49 @@ Or better yet, use environment variables (see Configuration section below).
 
 Update `ONNXModel._build_features()` in `server/infrastructure/models/onnx_model.py` to match your model's expected input features.
 
+### Option 2: Scikit-learn Model
+
+If you prefer using joblib-serialized scikit-learn models:
+
+```python
+import joblib
+
+# Save your trained sklearn model
+joblib.dump(model, "server/models/sklearn_model.joblib")
+```
+
+Set environment variable:
+```bash
+export MODEL_BACKEND=sklearn
+```
+
+### Option 3: PyTorch Model
+
+For PyTorch models (TorchScript or state dict):
+
+```python
+import torch
+
+# Save TorchScript
+scripted_model = torch.jit.script(model)
+torch.jit.save(scripted_model, "server/models/torch_model.pt")
+```
+
+Set environment variable:
+```bash
+export MODEL_BACKEND=torch
+```
+
 ## Configuration
 
 ### Environment Variables
 
+The service supports the following environment variables for model configuration:
+
 | Variable | Values | Default | Description |
 |----------|--------|---------|-------------|
-| `MODEL_BACKEND` | `onnx`, `dummy` | `onnx` | Which model adapter to use |
-| `MODEL_PATH` | File path | `server/models/example_model.onnx` | Path to model artifact |
+| `MODEL_BACKEND` | `dummy`, `onnx`, `sklearn`, `torch` | `dummy` | Which model adapter to use |
+| `MODEL_PATH` | File path | (varies by backend) | Path to model artifact (future enhancement) |
 | `DEFAULT_PREDICTION_VALUE` | Float | `0` | Constant value for `dummy` backend |
 
 **Example:**
@@ -136,6 +174,31 @@ export MODEL_BACKEND=onnx
 # Start the service
 python -m server.main
 ```
+
+### Making Model Path Configurable
+
+For production deployments, consider making the model path configurable via environment variables.
+
+Update `server/infrastructure/config.py`:
+```python
+@dataclass(slots=True)
+class Settings:
+    model_backend: str
+    model_path: str  # Add this
+    default_prediction_value: float
+
+def load_settings() -> Settings:
+    model_backend = os.getenv("MODEL_BACKEND", "dummy").strip().lower()
+    model_path = os.getenv("MODEL_PATH", f"server/models/{model_backend}_model.onnx")
+    default_prediction_value = float(os.getenv("DEFAULT_PREDICTION_VALUE", "0"))
+    return Settings(
+        model_backend=model_backend,
+        model_path=model_path,
+        default_prediction_value=default_prediction_value
+    )
+```
+
+Then update `container.py` to use `settings.model_path` instead of hardcoded paths.
 
 ## Model Input/Output Contract
 

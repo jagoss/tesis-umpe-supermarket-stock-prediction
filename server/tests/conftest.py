@@ -6,13 +6,8 @@ from typing import List, Tuple
 
 import pytest
 
-from server.application import (
-    ModelRawPrediction,
-    PredictStockInput,
-    PredictStockOutput,
-    PredictionPoint,
-    PreprocessedData,
-)
+from server.application.dto import PredictStockInput, PredictStockOutput, PredictionPoint
+from server.application.ports import ModelRawPrediction, PreprocessedData
 
 
 @pytest.fixture()

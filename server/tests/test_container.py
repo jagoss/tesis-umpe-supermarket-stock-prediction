@@ -6,10 +6,11 @@ from unittest.mock import patch
 
 import pytest
 
-from server.application.use_cases import PredictStockUseCase
+from server.application.use_cases.predict_stock import PredictStockUseCase
 from server.infrastructure.config import Settings
 from server.infrastructure.container import _select_model, build_predict_use_case
-from server.infrastructure.models import DummyModel, ONNXModel
+from server.infrastructure.models.dummy_model import DummyModel
+from server.infrastructure.models.onnx_model import ONNXModel
 
 
 class TestSelectModel:

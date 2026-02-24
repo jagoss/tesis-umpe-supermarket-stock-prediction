@@ -49,7 +49,7 @@ A simple linear regression model trained on synthetic time series data:
 - ✓ Implements `ModelPort` (Dependency Inversion Principle)
 - ✓ Single Responsibility (only handles ONNX inference)
 - ✓ Clean error messages and documentation
-- ✓ Implements `ModelPort` alongside `DummyModel`
+- ✓ Follows same pattern as `sklearn_model.py` and `torch_model.py`
 
 ### 4. Dependency Injection Updated ✓
 
@@ -112,9 +112,9 @@ Comprehensive documentation covering:
                             │ implements
 ┌─────────────────────────────────────────────────────────────┐
 │                   Infrastructure Layer                       │
-│  ┌──────────────┐  ┌──────────────┐                       │
-│  │ DummyModel   │  │ ONNXModel    │                       │
-│  └──────────────┘  └──────────────┘                       │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
+│  │ DummyModel   │  │ ONNXModel    │  │SklearnModel  │     │
+│  └──────────────┘  └──────────────┘  └──────────────┘     │
 │                            │                                 │
 │                            ▼                                 │
 │                    ┌──────────────┐                         │
@@ -248,7 +248,7 @@ curl -X POST http://localhost:8000/predict \
 - The example model is intentionally simple for demonstration purposes
 - Feature engineering in `_build_features()` should be customized based on your actual model's training data
 - ONNX Runtime provides excellent cross-platform performance without framework dependencies
-- ONNX is the canonical serving format; models from any framework are exported to `.onnx`
+- The implementation follows the exact same pattern as existing sklearn and torch adapters for consistency
 
 ## References
 

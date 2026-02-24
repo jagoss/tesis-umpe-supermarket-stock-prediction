@@ -7,11 +7,11 @@ from typing import List
 from fastapi import FastAPI, HTTPException
 from fastapi_mcp import FastApiMCP
 
-from server.application import PredictStockInput
-from server.domain import DomainError, ValidationError
-from server.infrastructure.container import get_predict_use_case_singleton
-from server.infrastructure.logging import configure_logging
-from server.interface.http.schemas import (
+from ...application.dto import PredictStockInput
+from ...domain.exceptions import DomainError, ValidationError
+from ...infrastructure.container import get_predict_use_case_singleton
+from ...infrastructure.logging import configure_logging
+from .schemas import (
     PredictionPoint as HttpPredictionPoint,
     PredictionRequest,
     PredictionResponse,
