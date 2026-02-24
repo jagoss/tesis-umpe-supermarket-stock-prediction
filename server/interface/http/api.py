@@ -1,8 +1,8 @@
 """FastAPI application exposing the prediction endpoint."""
+
 from __future__ import annotations
 
 import logging
-from typing import List
 
 from fastapi import FastAPI, HTTPException
 from fastapi_mcp import FastApiMCP
@@ -11,8 +11,8 @@ from server.application import PredictStockInput
 from server.domain import DomainError, ValidationError
 from server.infrastructure.container import get_predict_use_case_singleton
 from server.infrastructure.logging import configure_logging
+from server.interface.http.schemas import PredictionPoint as HttpPredictionPoint
 from server.interface.http.schemas import (
-    PredictionPoint as HttpPredictionPoint,
     PredictionRequest,
     PredictionResponse,
 )
@@ -41,7 +41,12 @@ async def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-@app.post("/predict", response_model=PredictionResponse, operation_id="predict_stock", tags=["prediction"])
+@app.post(
+    "/predict",
+    response_model=PredictionResponse,
+    operation_id="predict_stock",
+    tags=["prediction"],
+)
 async def predict(payload: PredictionRequest) -> PredictionResponse:
     """Predict stock for a product and store over a date range.
 
@@ -55,6 +60,7 @@ async def predict(payload: PredictionRequest) -> PredictionResponse:
 
     Returns:
         The predicted quantities for each day in the requested window.
+
     """
     try:
         history = (
@@ -72,9 +78,8 @@ async def predict(payload: PredictionRequest) -> PredictionResponse:
                 history=history,
             )
         )
-        points: List[HttpPredictionPoint] = [
-            HttpPredictionPoint(date=p.date, quantity=p.quantity)
-            for p in result.predictions
+        points: list[HttpPredictionPoint] = [
+            HttpPredictionPoint(date=p.date, quantity=p.quantity) for p in result.predictions
         ]
         return PredictionResponse(
             product_id=result.product_id, store_id=result.store_id, predictions=points

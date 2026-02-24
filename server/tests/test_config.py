@@ -1,10 +1,15 @@
 """Tests for infrastructure configuration."""
+
 from __future__ import annotations
 
 import os
 from unittest.mock import patch
 
-from server.infrastructure.config import Settings, load_settings, _get_default_model_path
+from server.infrastructure.config import (
+    Settings,
+    _get_default_model_path,
+    load_settings,
+)
 
 
 class TestSettings:

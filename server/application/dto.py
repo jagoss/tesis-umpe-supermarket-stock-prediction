@@ -2,11 +2,11 @@
 
 These are pure data carriers between layers, separate from transport types.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
-from typing import List, Optional, Tuple
 
 
 @dataclass(slots=True)
@@ -19,13 +19,14 @@ class PredictStockInput:
         start_date: Inclusive forecast start date.
         end_date: Inclusive forecast end date.
         history: Optional historical time series as (date, quantity) tuples.
+
     """
 
     product_id: str
     store_id: str
     start_date: date
     end_date: date
-    history: Optional[List[Tuple[date, float]]] = None
+    history: list[tuple[date, float]] | None = None
 
 
 @dataclass(slots=True)
@@ -42,4 +43,4 @@ class PredictStockOutput:
 
     product_id: str
     store_id: str
-    predictions: List[PredictionPoint]
+    predictions: list[PredictionPoint]
