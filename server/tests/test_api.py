@@ -1,7 +1,9 @@
 """Tests for the FastAPI HTTP endpoints."""
+
 from __future__ import annotations
 
 import os
+from collections.abc import Generator
 from unittest.mock import patch
 
 import pytest
@@ -9,9 +11,10 @@ from fastapi.testclient import TestClient
 
 
 @pytest.fixture()
-def client() -> TestClient:
+def client() -> Generator[TestClient, None, None]:
     """Create a test client with the dummy model backend."""
-    with patch.dict(os.environ, {"MODEL_BACKEND": "dummy", "DEFAULT_PREDICTION_VALUE": "10"}, clear=False):
+    env = {"MODEL_BACKEND": "dummy", "DEFAULT_PREDICTION_VALUE": "10"}
+    with patch.dict(os.environ, env, clear=False):
         # Reset the singleton so it picks up our env vars
         import server.infrastructure.container as container_mod
 

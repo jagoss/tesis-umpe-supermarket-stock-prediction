@@ -1,4 +1,5 @@
 """Tests for domain exception hierarchy."""
+
 from __future__ import annotations
 
 from server.domain import DomainError, PredictionError, ValidationError

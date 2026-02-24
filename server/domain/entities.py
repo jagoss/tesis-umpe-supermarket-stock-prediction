@@ -1,9 +1,9 @@
 """Domain entities and value objects for stock forecasting."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
-from typing import List
 
 
 @dataclass(frozen=True, slots=True)
@@ -20,4 +20,4 @@ class StockForecast:
 
     product_id: str
     store_id: str
-    points: List[StockForecastPoint]
+    points: list[StockForecastPoint]
