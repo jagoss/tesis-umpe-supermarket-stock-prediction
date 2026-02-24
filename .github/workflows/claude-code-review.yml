@@ -7,6 +7,10 @@ on:
 jobs:
   claude-review:
     name: Architecture & style review
+    # Skip PRs from develop or release/* into main (gitflow merge PRs — no review needed)
+    if: |
+      !(github.base_ref == 'main' &&
+        (github.head_ref == 'develop' || startsWith(github.head_ref, 'release/')))
     runs-on: ubuntu-latest
     permissions:
       contents: read
