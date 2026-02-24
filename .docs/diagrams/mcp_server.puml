@@ -31,16 +31,15 @@ interface MLModel {
   + version() : String
 }
 
-class TorchModel implements MLModel {
-  - loadedModel : Any
-  - _version : String
+class ONNXModel implements MLModel {
+  - modelPath : String
+  - session : InferenceSession
   + predict(input : Any) : Any
   + version() : String
 }
 
-class SklearnModel implements MLModel {
-  - loadedModel : Any
-  - _version : String
+class DummyModel implements MLModel {
+  - constant : float
   + predict(input : Any) : Any
   + version() : String
 }

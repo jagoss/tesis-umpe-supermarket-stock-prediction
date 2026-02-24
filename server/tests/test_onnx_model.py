@@ -6,9 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from server.application.ports import PreprocessedData
-from server.domain.exceptions import PredictionError
-from server.infrastructure.models.onnx_model import ONNXModel
+from server.application import PreprocessedData
+from server.domain import PredictionError
+from server.infrastructure.models import ONNXModel
 
 # Path to the example ONNX model shipped with the project
 _MODEL_PATH = str(
@@ -93,13 +93,13 @@ class TestONNXModelFeatures:
         assert features[1] == 5.0  # Saturday = 5
         assert features[3] == 1.0  # weekend
 
-    def test_hash_string_consistency(self) -> None:
-        h1 = self.model._hash_string_to_int("PROD-001")
-        h2 = self.model._hash_string_to_int("PROD-001")
-        assert h1 == h2
-
-    def test_hash_string_different_values(self) -> None:
-        h1 = self.model._hash_string_to_int("PROD-001")
-        h2 = self.model._hash_string_to_int("PROD-002")
-        # Different inputs should (almost certainly) produce different hashes
-        assert h1 != h2
+    def test_feature_vector_length(self) -> None:
+        data = PreprocessedData(
+            product_id="P1",
+            store_id="S1",
+            start_date=date(2026, 3, 2),
+            end_date=date(2026, 3, 2),
+            horizon=1,
+        )
+        features = self.model._build_features(data, step=0)
+        assert len(features) == 4
