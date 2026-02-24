@@ -5,7 +5,6 @@ import logging
 from typing import List
 
 from fastapi import FastAPI, HTTPException
-from fastapi_mcp import FastApiMCP
 
 from ...application.dto import PredictStockInput
 from ...domain.exceptions import DomainError, ValidationError
@@ -35,20 +34,15 @@ async def _startup() -> None:
     logger.info("Prediction service started and ready")
 
 
-@app.get("/health", operation_id="check_health", tags=["monitoring"])
+@app.get("/health")
 async def health() -> dict[str, str]:
     """Simple liveness probe returning service status."""
     return {"status": "ok"}
 
 
-@app.post("/predict", response_model=PredictionResponse, operation_id="predict_stock", tags=["prediction"])
+@app.post("/predict", response_model=PredictionResponse)
 async def predict(payload: PredictionRequest) -> PredictionResponse:
     """Predict stock for a product and store over a date range.
-
-    Use this tool when the user asks about future stock needs, demand forecasts,
-    or how many units of a product a store should order.  Provide the product ID,
-    store ID, and the date range to forecast.  Optionally include recent sales
-    history to improve accuracy.
 
     Args:
         payload: The prediction request with identifiers, date range, and optional history.
@@ -87,20 +81,3 @@ async def predict(payload: PredictionRequest) -> PredictionResponse:
     except Exception as exc:  # noqa: BLE001
         logger.exception("Unexpected error during prediction")
         raise HTTPException(status_code=500, detail="internal server error") from exc
-
-
-# ---------------------------------------------------------------------------
-# MCP (Model Context Protocol) – exposes prediction tools for Onyx / LLMs
-# ---------------------------------------------------------------------------
-mcp = FastApiMCP(
-    app,
-    name="Supermarket Stock Prediction MCP",
-    description=(
-        "MCP server that exposes supermarket stock-prediction capabilities. "
-        "An LLM-based assistant (e.g. Onyx) can call these tools to forecast "
-        "product demand for a given store and date range."
-    ),
-    describe_full_response_schema=True,
-    exclude_operations=["check_health"],
-)
-mcp.mount_http()

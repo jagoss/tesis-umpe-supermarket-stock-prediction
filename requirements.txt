@@ -8,5 +8,4 @@ onnxruntime>=1.18,<2.0
 joblib>=1.3,<2.0  # for sklearn model loading
 scikit-learn>=1.4,<2.0  # for example ONNX model generation
 skl2onnx>=1.16,<2.0  # for sklearn to ONNX conversion
-fastapi-mcp>=0.2.0  # MCP tool exposure for Onyx integration
 # torch>=2.2,<3.0
