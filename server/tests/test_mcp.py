@@ -19,12 +19,13 @@ from __future__ import annotations
 import importlib
 import json
 import os
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Generator
 from typing import Any
 from unittest.mock import patch
 
 import pytest
 from asgi_lifespan import LifespanManager
+from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 
 MCP_HEADERS = {
@@ -34,7 +35,7 @@ MCP_HEADERS = {
 
 
 @pytest.fixture(autouse=True)
-def _dummy_env():
+def _dummy_env() -> Generator[None, None, None]:
     """Patch environment to use the dummy model backend."""
     with patch.dict(
         os.environ,
@@ -48,7 +49,7 @@ def _dummy_env():
         container_mod._singleton_uc = None
 
 
-def _create_fresh_app():
+def _create_fresh_app() -> FastAPI:
     """Reload the API module to get a fresh FastAPI app with a new MCP session manager."""
     import server.interface.http.api as api_mod
 
@@ -66,7 +67,7 @@ async def mcp_client() -> AsyncGenerator[AsyncClient, None]:
     app = _create_fresh_app()
 
     async with LifespanManager(app) as manager:
-        transport = ASGITransport(app=manager.app)  # type: ignore[arg-type]
+        transport = ASGITransport(app=manager.app)
         async with AsyncClient(transport=transport, base_url="http://testserver") as client:
             yield client
 

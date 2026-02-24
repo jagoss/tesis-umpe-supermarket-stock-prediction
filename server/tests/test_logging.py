@@ -84,4 +84,6 @@ class TestConfigureLogging:
         assert root.handlers
         handler = root.handlers[0]
         assert handler.formatter is not None
-        assert "%(asctime)s" in handler.formatter._fmt
+        fmt_str = handler.formatter._fmt
+        assert fmt_str is not None
+        assert "%(asctime)s" in fmt_str

@@ -12,5 +12,5 @@ def configure_logging(level: int | str = "INFO") -> None:
     root logger is already configured.
     """
     if isinstance(level, str):
-        level = logging.getLevelName(level.upper())  # type: ignore[assignment]
+        level = logging.getLevelName(level.upper())
     logging.basicConfig(level=level, format="%(asctime)s %(levelname)s %(name)s - %(message)s")

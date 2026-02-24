@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 
 from fastapi import FastAPI, HTTPException
-from fastapi_mcp import FastApiMCP
+from fastapi_mcp import FastApiMCP  # type: ignore[import-untyped]
 
 from server.application import PredictStockInput
 from server.domain import DomainError, ValidationError

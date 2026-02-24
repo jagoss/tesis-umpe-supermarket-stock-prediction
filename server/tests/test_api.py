@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Generator
 from unittest.mock import patch
 
 import pytest
@@ -10,7 +11,7 @@ from fastapi.testclient import TestClient
 
 
 @pytest.fixture()
-def client() -> TestClient:
+def client() -> Generator[TestClient, None, None]:
     """Create a test client with the dummy model backend."""
     env = {"MODEL_BACKEND": "dummy", "DEFAULT_PREDICTION_VALUE": "10"}
     with patch.dict(os.environ, env, clear=False):

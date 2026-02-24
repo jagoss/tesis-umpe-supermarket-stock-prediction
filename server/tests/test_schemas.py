@@ -37,6 +37,7 @@ class TestPredictionRequest:
             store_id="S1",
             start_date=date(2026, 1, 1),
             end_date=date(2026, 1, 7),
+            history=None,
         )
         assert req.history is None
 
@@ -48,6 +49,7 @@ class TestPredictionRequest:
             end_date=date(2026, 1, 7),
             history=[HistoryPoint(date=date(2025, 12, 31), quantity=5.0)],
         )
+        assert req.history is not None
         assert len(req.history) == 1
 
     def test_empty_product_id_rejected(self) -> None:
@@ -57,6 +59,7 @@ class TestPredictionRequest:
                 store_id="S1",
                 start_date=date(2026, 1, 1),
                 end_date=date(2026, 1, 7),
+                history=None,
             )
 
     def test_empty_store_id_rejected(self) -> None:
@@ -66,6 +69,7 @@ class TestPredictionRequest:
                 store_id="",
                 start_date=date(2026, 1, 1),
                 end_date=date(2026, 1, 7),
+                history=None,
             )
 
     def test_missing_required_fields(self) -> None:
