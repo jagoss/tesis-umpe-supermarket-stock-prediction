@@ -1,19 +1,20 @@
 """ONNX Runtime model adapter for inference.
 
 This adapter loads an ONNX model and runs inference using ONNX Runtime.
-It follows the same pattern as sklearn_model.py and torch_model.py.
+ONNX is the canonical serving format — models trained in any framework
+(scikit-learn, PyTorch, TensorFlow, etc.) are exported to .onnx and served
+through this single adapter.
 """
 from __future__ import annotations
 
-import hashlib
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 import numpy.typing as npt
 
-from ...application.ports import ModelPort, ModelRawPrediction, PreprocessedData
-from ...domain.exceptions import PredictionError
+from server.application import ModelPort, ModelRawPrediction, PreprocessedData
+from server.domain import PredictionError
 
 
 class ONNXModel(ModelPort):
@@ -101,21 +102,6 @@ class ONNXModel(ModelPort):
             raise PredictionError(
                 f"Failed to load ONNX model from {self._model_path}: {exc}"
             ) from exc
-
-    def _hash_string_to_int(self, value: str, max_val: int = 1000) -> int:
-        """Convert a string to a consistent integer hash.
-
-        Args:
-            value: String to hash (e.g., product_id, store_id).
-            max_val: Maximum integer value for the hash (for normalization).
-
-        Returns:
-            An integer between 0 and max_val.
-            
-        """
-        hash_bytes = hashlib.md5(value.encode()).digest()
-        hash_int = int.from_bytes(hash_bytes[:4], byteorder="little")
-        return hash_int % max_val
 
     def _build_features(self, data: PreprocessedData, step: int) -> list[float]:
         """Extract features from PreprocessedData for a single horizon step.

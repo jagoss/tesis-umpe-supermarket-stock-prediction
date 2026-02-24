@@ -1,8 +1,8 @@
 """Tests for DummyModel."""
 from __future__ import annotations
 
-from server.application.ports import PreprocessedData
-from server.infrastructure.models.dummy_model import DummyModel
+from server.application import PreprocessedData
+from server.infrastructure.models import DummyModel
 
 
 class TestDummyModel:

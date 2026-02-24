@@ -3,8 +3,8 @@ from __future__ import annotations
 
 from datetime import date
 
-from server.application.dto import PredictStockInput
-from server.infrastructure.preprocessing.basic_preprocessor import BasicPreprocessor
+from server.application import PredictStockInput
+from server.infrastructure.preprocessing import BasicPreprocessor
 
 
 class TestBasicPreprocessor:

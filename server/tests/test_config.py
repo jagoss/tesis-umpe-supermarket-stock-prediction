@@ -56,14 +56,6 @@ class TestGetDefaultModelPath:
         path = _get_default_model_path("onnx")
         assert "example_model.onnx" in path
 
-    def test_sklearn_default(self) -> None:
-        path = _get_default_model_path("sklearn")
-        assert "sklearn_model.joblib" in path
-
-    def test_torch_default(self) -> None:
-        path = _get_default_model_path("torch")
-        assert "torch_model.pt" in path
-
     def test_dummy_empty(self) -> None:
         path = _get_default_model_path("dummy")
         assert path == ""
