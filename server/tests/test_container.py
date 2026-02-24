@@ -1,4 +1,5 @@
 """Tests for the dependency injection container."""
+
 from __future__ import annotations
 
 import os
@@ -22,10 +23,10 @@ class TestSelectModel:
         # Use the example model path
         from pathlib import Path
 
-        model_path = str(
-            Path(__file__).resolve().parent.parent / "models" / "example_model.onnx"
+        model_path = str(Path(__file__).resolve().parent.parent / "models" / "example_model.onnx")
+        settings = Settings(
+            model_backend="onnx", model_path=model_path, default_prediction_value=0.0
         )
-        settings = Settings(model_backend="onnx", model_path=model_path, default_prediction_value=0.0)
         model = _select_model(settings)
         assert isinstance(model, ONNXModel)
 

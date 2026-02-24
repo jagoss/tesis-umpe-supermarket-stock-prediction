@@ -1,4 +1,5 @@
 """Tests for ONNXModel adapter."""
+
 from __future__ import annotations
 
 from datetime import date
@@ -11,9 +12,7 @@ from server.domain import PredictionError
 from server.infrastructure.models import ONNXModel
 
 # Path to the example ONNX model shipped with the project
-_MODEL_PATH = str(
-    Path(__file__).resolve().parent.parent / "models" / "example_model.onnx"
-)
+_MODEL_PATH = str(Path(__file__).resolve().parent.parent / "models" / "example_model.onnx")
 
 
 class TestONNXModelInit:

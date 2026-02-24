@@ -2,9 +2,8 @@
 
 This model returns a constant value for each step of the requested horizon.
 """
-from __future__ import annotations
 
-from typing import List
+from __future__ import annotations
 
 from server.application import ModelPort, ModelRawPrediction, PreprocessedData
 
@@ -17,10 +16,11 @@ class DummyModel(ModelPort):
 
         Args:
             constant: The value to repeat for each step in the horizon.
+
         """
         self._constant = float(constant)
 
     def predict(self, data: PreprocessedData) -> ModelRawPrediction:
         """Return a constant vector with length equal to the requested horizon."""
-        values: List[float] = [self._constant for _ in range(max(0, data.horizon))]
+        values: list[float] = [self._constant for _ in range(max(0, data.horizon))]
         return ModelRawPrediction(values=values)

@@ -3,6 +3,7 @@
 The use case receives a ``StockForecast`` domain entity from the postprocessor
 and maps it to a ``PredictStockOutput`` application DTO with rounded quantities.
 """
+
 from __future__ import annotations
 
 from datetime import date
@@ -17,7 +18,12 @@ from server.application import (
     PreprocessedData,
 )
 from server.application.use_cases import PredictStockUseCase
-from server.domain import PredictionError, StockForecast, StockForecastPoint, ValidationError
+from server.domain import (
+    PredictionError,
+    StockForecast,
+    StockForecastPoint,
+    ValidationError,
+)
 
 
 def _build_use_case(
@@ -79,7 +85,10 @@ class TestValidation:
         preprocessor.preprocess.return_value = pre_data
         model.predict.return_value = ModelRawPrediction(values=[10.0])
         postprocessor.postprocess.return_value = _make_forecast(
-            product_id="P1", store_id="S1", start=date(2026, 3, 5), values=[10.0],
+            product_id="P1",
+            store_id="S1",
+            start=date(2026, 3, 5),
+            values=[10.0],
         )
 
         uc = _build_use_case(preprocessor, model, postprocessor)

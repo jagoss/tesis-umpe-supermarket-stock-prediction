@@ -7,11 +7,16 @@ Flow:
 4. Postprocess into a ``StockForecast`` domain entity.
 5. Map the domain entity to a ``PredictStockOutput`` application DTO.
 """
+
 from __future__ import annotations
 
 from datetime import date
 
-from server.application.dto import PredictionPoint, PredictStockInput, PredictStockOutput
+from server.application.dto import (
+    PredictionPoint,
+    PredictStockInput,
+    PredictStockOutput,
+)
 from server.application.ports import ModelPort, PostprocessorPort, PreprocessorPort
 from server.domain import StockForecast, ValidationError
 

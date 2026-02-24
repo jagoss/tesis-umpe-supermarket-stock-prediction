@@ -16,7 +16,11 @@ Port interfaces:
    (not from this package) to avoid circular imports during loading.
 """
 
-from server.application.dto import PredictionPoint, PredictStockInput, PredictStockOutput
+from server.application.dto import (
+    PredictionPoint,
+    PredictStockInput,
+    PredictStockOutput,
+)
 from server.application.ports import (
     ModelPort,
     ModelRawPrediction,
