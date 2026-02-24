@@ -9,13 +9,12 @@ should be exported to ``.onnx`` and served through the ONNX adapter.
 """
 from __future__ import annotations
 
-from ..application.ports import ModelPort, PostprocessorPort, PreprocessorPort
-from ..application.use_cases.predict_stock import PredictStockUseCase
-from .config import Settings, load_settings
-from .models.dummy_model import DummyModel
-from .models.onnx_model import ONNXModel
-from .postprocessing.basic_postprocessor import BasicPostprocessor
-from .preprocessing.basic_preprocessor import BasicPreprocessor
+from server.application import ModelPort, PostprocessorPort, PreprocessorPort
+from server.application.use_cases import PredictStockUseCase
+from server.infrastructure.config import Settings, load_settings
+from server.infrastructure.models import DummyModel, ONNXModel
+from server.infrastructure.postprocessing import BasicPostprocessor
+from server.infrastructure.preprocessing import BasicPreprocessor
 
 
 _singleton_uc: PredictStockUseCase | None = None

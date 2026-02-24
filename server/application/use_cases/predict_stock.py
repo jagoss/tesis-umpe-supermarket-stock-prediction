@@ -11,10 +11,9 @@ from __future__ import annotations
 
 from datetime import date
 
-from ...domain.entities import StockForecast
-from ...domain.exceptions import ValidationError
-from ..dto import PredictionPoint, PredictStockInput, PredictStockOutput
-from ..ports import ModelPort, PostprocessorPort, PreprocessorPort
+from server.application.dto import PredictionPoint, PredictStockInput, PredictStockOutput
+from server.application.ports import ModelPort, PostprocessorPort, PreprocessorPort
+from server.domain import StockForecast, ValidationError
 
 
 class PredictStockUseCase:

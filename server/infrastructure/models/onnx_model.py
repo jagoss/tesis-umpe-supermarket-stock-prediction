@@ -13,8 +13,8 @@ from typing import Any
 import numpy as np
 import numpy.typing as npt
 
-from ...application.ports import ModelPort, ModelRawPrediction, PreprocessedData
-from ...domain.exceptions import PredictionError
+from server.application import ModelPort, ModelRawPrediction, PreprocessedData
+from server.domain import PredictionError
 
 
 class ONNXModel(ModelPort):

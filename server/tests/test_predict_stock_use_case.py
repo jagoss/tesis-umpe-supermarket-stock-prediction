@@ -10,11 +10,14 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from server.application.dto import PredictStockInput, PredictStockOutput
-from server.application.ports import ModelRawPrediction, PreprocessedData
-from server.application.use_cases.predict_stock import PredictStockUseCase
-from server.domain.entities import StockForecast, StockForecastPoint
-from server.domain.exceptions import PredictionError, ValidationError
+from server.application import (
+    ModelRawPrediction,
+    PredictStockInput,
+    PredictStockOutput,
+    PreprocessedData,
+)
+from server.application.use_cases import PredictStockUseCase
+from server.domain import PredictionError, StockForecast, StockForecastPoint, ValidationError
 
 
 def _build_use_case(

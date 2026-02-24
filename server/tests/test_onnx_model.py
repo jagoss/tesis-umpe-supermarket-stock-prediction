@@ -6,9 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from server.application.ports import PreprocessedData
-from server.domain.exceptions import PredictionError
-from server.infrastructure.models.onnx_model import ONNXModel
+from server.application import PreprocessedData
+from server.domain import PredictionError
+from server.infrastructure.models import ONNXModel
 
 # Path to the example ONNX model shipped with the project
 _MODEL_PATH = str(

@@ -10,8 +10,8 @@ from dataclasses import dataclass
 from datetime import date
 from typing import List, Optional, Protocol, Tuple
 
-from ..domain.entities import StockForecast
-from .dto import PredictStockInput
+from server.application.dto import PredictStockInput
+from server.domain import StockForecast
 
 
 @dataclass(slots=True)

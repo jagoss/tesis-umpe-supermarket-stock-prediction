@@ -8,10 +8,8 @@ from __future__ import annotations
 
 from datetime import timedelta
 
-from ...application.dto import PredictStockInput
-from ...application.ports import ModelRawPrediction
-from ...domain.entities import StockForecast, StockForecastPoint
-from ...domain.exceptions import PredictionError
+from server.application import ModelRawPrediction, PredictStockInput
+from server.domain import PredictionError, StockForecast, StockForecastPoint
 
 
 class BasicPostprocessor:

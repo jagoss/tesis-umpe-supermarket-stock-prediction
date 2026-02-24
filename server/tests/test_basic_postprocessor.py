@@ -9,11 +9,9 @@ from datetime import date
 
 import pytest
 
-from server.application.dto import PredictStockInput
-from server.application.ports import ModelRawPrediction
-from server.domain.entities import StockForecast
-from server.domain.exceptions import PredictionError
-from server.infrastructure.postprocessing.basic_postprocessor import BasicPostprocessor
+from server.application import ModelRawPrediction, PredictStockInput
+from server.domain import PredictionError, StockForecast
+from server.infrastructure.postprocessing import BasicPostprocessor
 
 
 class TestBasicPostprocessor:

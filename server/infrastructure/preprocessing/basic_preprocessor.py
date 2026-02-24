@@ -4,8 +4,7 @@ Converts application input DTO into model-ready features.
 """
 from __future__ import annotations
 
-from ...application.dto import PredictStockInput
-from ...application.ports import PreprocessedData, PreprocessorPort
+from server.application import PreprocessedData, PreprocessorPort, PredictStockInput
 
 
 class BasicPreprocessor(PreprocessorPort):

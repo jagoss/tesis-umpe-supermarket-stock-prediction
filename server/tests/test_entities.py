@@ -5,7 +5,7 @@ from datetime import date
 
 import pytest
 
-from server.domain.entities import StockForecast, StockForecastPoint
+from server.domain import StockForecast, StockForecastPoint
 
 
 class TestStockForecastPoint:
