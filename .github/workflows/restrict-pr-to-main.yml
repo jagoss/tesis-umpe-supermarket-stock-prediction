@@ -12,7 +12,7 @@ jobs:
       - name: Validate source branch
         run: |
           SOURCE="${{ github.head_ref }}"
-          if [[ "$SOURCE" == "develop" || "$SOURCE" == hotfix/* ]]; then
+          if [[ "$SOURCE" == "develop" || "$SOURCE" == hotfix/* || "$SOURCE" == release/* ]]; then
             echo "Branch '$SOURCE' is allowed to merge into main."
           else
             echo "ERROR: PRs to 'main' are only allowed from 'develop' or 'hotfix/*' branches."
