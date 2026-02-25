@@ -155,6 +155,176 @@ Abrir en el navegador: **http://localhost:3000**
 
 ---
 
+## Configuración Inicial de Onyx (Primer Inicio)
+
+La primera vez que se accede a la interfaz de Onyx, es necesario completar la configuración
+inicial. Sin estos pasos, el chat y las herramientas MCP **no funcionarán**.
+
+### 1. Crear el primer usuario (Admin)
+
+1. Abrir **http://localhost:3000**.
+2. Si `AUTH_TYPE=disabled` (por defecto), se accede directamente sin login.
+3. Si `AUTH_TYPE=basic` u otro, registrar un usuario. **El primer usuario registrado
+   se convierte automáticamente en Administrador.**
+
+> Solo los Administradores pueden acceder al Admin Panel, configurar LLMs,
+> registrar herramientas MCP y crear agentes.
+
+### 2. Configurar el proveedor de LLM
+
+Este es el paso más crítico. Sin un LLM configurado, Onyx no puede procesar mensajes
+ni invocar herramientas.
+
+1. Hacer clic en el **ícono de perfil** (esquina superior derecha).
+2. Seleccionar **"Admin Panel"**.
+3. Ir a la sección **"LLM"** (o **"AI Models"**).
+4. Seleccionar el proveedor deseado:
+
+   | Proveedor | Requiere | Notas |
+   |-----------|----------|-------|
+   | **OpenAI** | API key de OpenAI | Modelos recomendados: `gpt-4o-mini` (rápido/económico), `gpt-4o` (mejor calidad) |
+   | **Anthropic** | API key de Anthropic | Modelos: `claude-sonnet-4-6`, `claude-opus-4-6` |
+   | **Ollama** | Ollama corriendo localmente | Gratuito, sin API key. Modelos: `llama3`, `mistral`, `qwen` |
+   | **Azure OpenAI** | Endpoint + API key de Azure | Para organizaciones con Azure |
+   | **Personalizado** | URL base + API key | Cualquier API compatible con OpenAI |
+
+5. Completar los campos:
+   - **Display Name**: nombre descriptivo (ej: "OpenAI Production")
+   - **API Key**: la clave del proveedor
+   - **Default Model**: modelo principal para chat y herramientas (ej: `gpt-4o-mini`)
+   - **Fast Model** (opcional): modelo ligero para tareas internas como nombrar
+     conversaciones y expandir consultas (ej: `gpt-4o-mini`)
+
+6. Hacer clic en **"Save"** o **"Test & Save"**.
+
+#### Configuración vía variables de entorno (alternativa)
+
+Las variables en `.env` pre-configuran el LLM al iniciar los contenedores:
+
+```bash
+GEN_AI_MODEL_PROVIDER=openai
+GEN_AI_MODEL_VERSION=gpt-4o-mini
+GEN_AI_API_KEY=sk-...
+```
+
+> **Nota:** Incluso con las variables de entorno configuradas, se recomienda verificar
+> la configuración del LLM en el Admin Panel después del primer inicio.
+
+#### Usar un LLM local con Ollama (sin costo)
+
+Para evitar costos de API durante desarrollo o la demostración de tesis:
+
+1. Instalar [Ollama](https://ollama.ai) en la máquina host.
+2. Descargar un modelo: `ollama pull llama3.3`
+3. Configurar en `.env`:
+   ```bash
+   GEN_AI_MODEL_PROVIDER=ollama
+   GEN_AI_MODEL_VERSION=llama3.3
+   GEN_AI_API_KEY=
+   ```
+4. En el Admin Panel de Onyx, configurar el proveedor como **Ollama** con
+   URL base: `http://host.docker.internal:11434` (accede al Ollama del host desde Docker).
+
+### 3. Verificar que Onyx está funcional
+
+Antes de configurar herramientas MCP, verificar que el chat básico funciona:
+
+1. Ir a la pantalla principal de chat (**http://localhost:3000**).
+2. Escribir un mensaje simple: *"Hola, ¿estás funcionando?"*
+3. Onyx debería responder usando el LLM configurado.
+
+Si no responde o muestra un error, revisar:
+- Que el LLM esté configurado correctamente en el Admin Panel.
+- Que la API key sea válida.
+- Logs del backend: `bash scripts/containers.sh logs api_server`
+
+---
+
+## Verificación de Salud de los Servicios Onyx
+
+### Health checks por servicio
+
+```bash
+# Prediction server (nuestro)
+curl http://localhost:8000/health
+# Esperado: {"status":"ok"}
+
+# Onyx API server (puerto interno 8080, no expuesto por defecto)
+# Verificar vía Docker:
+docker exec onyx_api_server curl -s http://localhost:8080/health
+# Esperado: {"success":true, ...}
+
+# Estado general de todos los contenedores
+docker compose ps
+```
+
+### Interpretar el estado de los contenedores
+
+| Contenedor | Estado esperado | Si falla |
+|------------|----------------|----------|
+| `prediction_server` | `Up (healthy)` | Verificar logs: `docker compose logs prediction_server` |
+| `onyx_api_server` | `Up` | Verificar LLM config y DB: `docker compose logs api_server` |
+| `onyx_web_server` | `Up` | Verificar que `api_server` esté corriendo |
+| `onyx_background` | `Up` | Worker de tareas — verificar conexión a Redis y DB |
+| `onyx_model_server` | `Up` | Descarga modelos de embeddings en primer inicio (~2-5 min) |
+| `onyx_relational_db` | `Up (healthy)` | Verificar `POSTGRES_PASSWORD` en `.env` |
+| `onyx_cache` | `Up (healthy)` | Redis — raramente falla |
+
+### Logs útiles para diagnóstico
+
+```bash
+# Logs de un servicio específico
+bash scripts/containers.sh logs api_server
+
+# Logs de todos los servicios
+bash scripts/containers.sh logs
+
+# Últimas 50 líneas del prediction server
+docker compose logs --tail 50 prediction_server
+```
+
+---
+
+## Gestión de Versiones de Onyx
+
+### Fijar una versión específica
+
+Para garantizar reproducibilidad (especialmente para la defensa de tesis), fijar la
+versión de Onyx en `.env`:
+
+```bash
+# En .env — usar una versión estable específica
+ONYX_VERSION=v0.20.0
+```
+
+> **Recomendación para tesis:** Fijar la versión una vez que la integración funcione
+> correctamente. Usar `latest` durante desarrollo y cambiar a una versión fija antes
+> de la demostración.
+
+### Verificar versiones disponibles
+
+```bash
+# Ver la última versión estable publicada
+curl -s https://cloud.onyx.app/api/versions
+```
+
+### Actualizar Onyx
+
+```bash
+# Cambiar ONYX_VERSION en .env, luego:
+bash scripts/containers.sh down
+bash scripts/containers.sh
+```
+
+### Notas sobre versiones
+
+- Las versiones estables usan el formato `vX.Y.Z` (ej: `v0.20.0`).
+- `latest` apunta a la última versión estable publicada.
+- La rama `main` de Onyx es de desarrollo — **no usar para producción**.
+- Onyx publica nuevas versiones estables los lunes; hotfixes se publican inmediatamente.
+
+---
+
 ## Configuración sin Docker (Desarrollo Local)
 
 Para ejecutar el servidor de predicción sin Docker (útil para desarrollo rápido):
