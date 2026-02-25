@@ -115,6 +115,61 @@ bash scripts/containers.sh destroy
 
 ---
 
+## CI Smoke Test
+
+The workflow `.github/workflows/container-smoke-test.yml` automatically validates the prediction server container on every push to `develop` and on every pull request.
+
+### What it tests
+
+| Check | Details |
+|---|---|
+| **Image builds** | `docker build` completes without errors |
+| **Container starts** | `/health` responds within 60 s |
+| `GET /health` | Returns `{"status":"ok"}` |
+| `GET /docs` | OpenAPI UI is accessible (HTTP 200) |
+| `GET /openapi.json` | `predict_stock` and `check_health` operation IDs are present |
+| `POST /predict` | Returns 200, echoes `product_id` / `store_id`, returns exactly one point per requested day, each `quantity` equals `DEFAULT_PREDICTION_VALUE` |
+| `POST /predict` invalid | Empty `product_id` returns HTTP 422 |
+
+### Design decisions
+
+- **`MODEL_BACKEND=dummy`** — no `.onnx` file is needed in CI; the dummy backend returns a configurable constant instantly.
+- **`DEFAULT_PREDICTION_VALUE=10`** — a known constant that the last test asserts on, so a silent regression in value propagation would be caught.
+- **Full Onyx stack excluded** — the Onyx services require ≥10 GB RAM and many large images; they are not practical to run in CI. Only the prediction server is tested here.
+- Container logs are printed automatically if any step fails, making failures easy to diagnose without SSH access to the runner.
+
+### Running the same checks locally
+
+```bash
+# Build
+docker build -t prediction-server:test .
+
+# Start with dummy backend
+docker run -d --name prediction_server_test \
+  -p 8000:8000 \
+  -e MODEL_BACKEND=dummy \
+  -e DEFAULT_PREDICTION_VALUE=10 \
+  prediction-server:test
+
+# Health check
+curl http://localhost:8000/health
+
+# Predict (3-day window → 3 points)
+curl -s -X POST http://localhost:8000/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "product_id": "PROD-001",
+    "store_id":   "STORE-A",
+    "start_date": "2030-01-01",
+    "end_date":   "2030-01-03"
+  }' | python3 -m json.tool
+
+# Cleanup
+docker stop prediction_server_test && docker rm prediction_server_test
+```
+
+---
+
 ## Registering the MCP Server in Onyx
 
 After `docker compose up` completes and all services are healthy:
