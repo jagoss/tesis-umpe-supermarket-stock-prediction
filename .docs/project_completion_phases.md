@@ -14,7 +14,7 @@
 - [ ] **Phase 2:** ML Training Pipeline & Production Model *(parallel track)*
 - [x] **Phase 3:** CI/CD Pipeline & Automated Quality Gates
 - [x] **Phase 4:** Containerization & Deployment
-- [ ] **Phase 5:** Onyx Integration & End-to-End Validation
+- [x] **Phase 5:** Onyx Integration & End-to-End Validation
 - [ ] **Phase 6:** Hardening & Production Readiness
 
 ---

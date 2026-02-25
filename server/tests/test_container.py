@@ -15,7 +15,7 @@ from server.infrastructure.models import DummyModel, ONNXModel
 
 class TestSelectModel:
     def test_dummy_backend(self) -> None:
-        settings = Settings(model_backend="dummy", model_path="", default_prediction_value=5.0)
+        settings = Settings(model_backend="dummy", model_path="", default_prediction_value=5.0, cors_origins=["*"])
         model = _select_model(settings)
         assert isinstance(model, DummyModel)
 
@@ -25,13 +25,13 @@ class TestSelectModel:
 
         model_path = str(Path(__file__).resolve().parent.parent / "models" / "example_model.onnx")
         settings = Settings(
-            model_backend="onnx", model_path=model_path, default_prediction_value=0.0
+            model_backend="onnx", model_path=model_path, default_prediction_value=0.0, cors_origins=["*"],
         )
         model = _select_model(settings)
         assert isinstance(model, ONNXModel)
 
     def test_unknown_backend_raises(self) -> None:
-        settings = Settings(model_backend="unknown", model_path="", default_prediction_value=0.0)
+        settings = Settings(model_backend="unknown", model_path="", default_prediction_value=0.0, cors_origins=["*"])
         with pytest.raises(ValueError, match="Unknown MODEL_BACKEND"):
             _select_model(settings)
 

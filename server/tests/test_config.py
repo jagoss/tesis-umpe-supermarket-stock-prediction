@@ -14,10 +14,16 @@ from server.infrastructure.config import (
 
 class TestSettings:
     def test_dataclass_fields(self) -> None:
-        s = Settings(model_backend="dummy", model_path="/tmp/m.onnx", default_prediction_value=5.0)
+        s = Settings(
+            model_backend="dummy",
+            model_path="/tmp/m.onnx",
+            default_prediction_value=5.0,
+            cors_origins=["*"],
+        )
         assert s.model_backend == "dummy"
         assert s.model_path == "/tmp/m.onnx"
         assert s.default_prediction_value == 5.0
+        assert s.cors_origins == ["*"]
 
 
 class TestLoadSettings:
@@ -54,6 +60,22 @@ class TestLoadSettings:
         with patch.dict(os.environ, {"DEFAULT_PREDICTION_VALUE": "42.5"}, clear=False):
             s = load_settings()
         assert s.default_prediction_value == 42.5
+
+    def test_cors_origins_default(self) -> None:
+        with patch.dict(os.environ, {}, clear=True):
+            for key in ("MODEL_BACKEND", "MODEL_PATH", "DEFAULT_PREDICTION_VALUE", "CORS_ORIGINS"):
+                os.environ.pop(key, None)
+            s = load_settings()
+        assert s.cors_origins == ["*"]
+
+    def test_cors_origins_from_env(self) -> None:
+        with patch.dict(
+            os.environ,
+            {"CORS_ORIGINS": "http://localhost:3000,https://example.com"},
+            clear=False,
+        ):
+            s = load_settings()
+        assert s.cors_origins == ["http://localhost:3000", "https://example.com"]
 
 
 class TestGetDefaultModelPath:
