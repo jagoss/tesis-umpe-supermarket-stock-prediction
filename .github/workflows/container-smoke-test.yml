@@ -1,0 +1,133 @@
+name: Container Smoke Test
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  smoke-test:
+    name: Prediction server container smoke test
+    runs-on: ubuntu-latest
+    # Skip gitflow merge PRs (develop → main, release/* → main) — no review needed
+    if: |
+      !(github.base_ref == 'main' &&
+        (github.head_ref == 'develop' || startsWith(github.head_ref, 'release/')))
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Build the image from the Dockerfile in the repo root.
+      # Tagged as prediction-server:test so it does not collide with any local image.
+      - name: Build prediction server image
+        run: docker build -t prediction-server:test .
+
+      # Run with MODEL_BACKEND=dummy — no .onnx file required, perfect for CI.
+      # DEFAULT_PREDICTION_VALUE=10 gives us a known quantity to assert on.
+      - name: Start prediction server container
+        run: |
+          docker run -d \
+            --name prediction_server_test \
+            -p 8000:8000 \
+            -e MODEL_BACKEND=dummy \
+            -e DEFAULT_PREDICTION_VALUE=10 \
+            prediction-server:test
+
+      - name: Wait for container to become healthy
+        run: |
+          echo "Waiting for /health to respond..."
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8000/health > /dev/null; then
+              echo "Container is healthy after $((i * 2))s"
+              exit 0
+            fi
+            echo "  attempt $i/30 — not ready yet, retrying in 2s..."
+            sleep 2
+          done
+          echo "Container did not become healthy within 60s"
+          docker logs prediction_server_test
+          exit 1
+
+      # ── Endpoint tests ────────────────────────────────────────────────────
+
+      - name: "GET /health → 200 {status: ok}"
+        run: |
+          response=$(curl -sf http://localhost:8000/health)
+          echo "Response: $response"
+          echo "$response" | grep -q '"status":"ok"'
+          echo "✓ /health passed"
+
+      - name: "GET /docs → 200"
+        run: |
+          curl -sf http://localhost:8000/docs -o /dev/null
+          echo "✓ /docs is accessible"
+
+      - name: "GET /openapi.json → valid schema"
+        run: |
+          response=$(curl -sf http://localhost:8000/openapi.json)
+          echo "$response" | grep -q '"predict_stock"'
+          echo "$response" | grep -q '"check_health"'
+          echo "✓ /openapi.json contains expected operation IDs"
+
+      - name: "POST /predict → 200 with correct structure"
+        run: |
+          response=$(curl -sf -X POST http://localhost:8000/predict \
+            -H "Content-Type: application/json" \
+            -d '{
+              "product_id": "PROD-001",
+              "store_id":   "STORE-A",
+              "start_date": "2030-01-01",
+              "end_date":   "2030-01-03"
+            }')
+          echo "Response: $response"
+
+          # Assert echoed identifiers
+          echo "$response" | grep -q '"product_id":"PROD-001"'
+          echo "$response" | grep -q '"store_id":"STORE-A"'
+
+          # Assert predictions array is present and has 3 entries (Jan 1–3)
+          echo "$response" | grep -q '"predictions"'
+          count=$(echo "$response" | python3 -c "
+          import sys, json
+          data = json.load(sys.stdin)
+          print(len(data['predictions']))
+          ")
+          if [ "$count" -ne 3 ]; then
+            echo "Expected 3 prediction points, got $count"
+            exit 1
+          fi
+
+          # Assert dummy backend returns the configured constant value (10)
+          echo "$response" | python3 -c "
+          import sys, json
+          data = json.load(sys.stdin)
+          for p in data['predictions']:
+              assert p['quantity'] == 10, f\"Expected quantity=10, got {p['quantity']}\"
+          print('All quantities match DEFAULT_PREDICTION_VALUE=10')
+          "
+          echo "✓ /predict passed"
+
+      - name: "POST /predict with invalid payload → 422"
+        run: |
+          status=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:8000/predict \
+            -H "Content-Type: application/json" \
+            -d '{"product_id": "", "store_id": "STORE-A", "start_date": "2030-01-01", "end_date": "2030-01-03"}')
+          if [ "$status" -ne 422 ]; then
+            echo "Expected HTTP 422 for empty product_id, got $status"
+            exit 1
+          fi
+          echo "✓ validation error returns 422"
+
+      # ── Diagnostics on failure ─────────────────────────────────────────────
+
+      - name: Print container logs on failure
+        if: failure()
+        run: docker logs prediction_server_test
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop prediction_server_test || true
+          docker rm  prediction_server_test || true

@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: read
+      pull-requests: write
       issues: read
       id-token: write
 
@@ -28,17 +28,14 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
-          plugins: 'code-review@claude-code-plugins'
-          allowed_bots: '*'
           # Token budget: keep costs low for a $20/month Claude subscription
           max_turns: 2
           claude_args: '--max-tokens 1500'
           prompt: |
-            /code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}
+            Review the changes in PR ${{ github.repository }}/pull/${{ github.event.pull_request.number }}.
+            Post your findings as a PR review comment.
 
-            When reviewing this Python project, apply these additional criteria on top
-            of the standard code-review checks:
+            Apply the following criteria:
 
             ## Python Best Practices
             - PEP 8 compliance (enforced by ruff/black/isort — flag anything they miss)
