@@ -1,0 +1,179 @@
+# docker-compose.yml — Supermarket Stock Prediction Server + Self-Hosted Onyx
+#
+# Usage:
+#   1. Copy .env.example to .env and fill in your values.
+#   2. docker compose up -d
+#
+# Onyx UI:        http://localhost:3000
+# Prediction API: http://localhost:8000
+# MCP endpoint:   http://localhost:8000/mcp  (or http://prediction_server:8000/mcp inside the network)
+#
+# Hardware requirements (Onyx): ≥4 vCPU, ≥10 GB RAM, ≥32 GB disk.
+# Reference: https://docs.onyx.app/quickstart
+
+services:
+
+  # ── Supermarket Stock Prediction Server ─────────────────────────────────────
+  prediction_server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: prediction-server:latest
+    container_name: prediction_server
+    environment:
+      MODEL_BACKEND: ${MODEL_BACKEND:-onnx}
+      MODEL_PATH: ${MODEL_PATH:-server/models/example_model.onnx}
+      DEFAULT_PREDICTION_VALUE: ${DEFAULT_PREDICTION_VALUE:-0}
+    volumes:
+      # Mount model artefacts from the host so swapping a production model
+      # only requires replacing the file and restarting — no image rebuild.
+      - ${MODEL_ARTIFACTS_PATH:-./server/models}:/app/server/models:ro
+    networks:
+      - app_network
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+
+  # ── Onyx Dependencies ────────────────────────────────────────────────────────
+
+  relational_db:
+    image: postgres:15.2-alpine
+    container_name: onyx_relational_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-onyx}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-onyx}
+      POSTGRES_DB: ${POSTGRES_DB:-onyx}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-onyx} -d ${POSTGRES_DB:-onyx}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  cache:
+    image: redis:7.4-alpine
+    container_name: onyx_cache
+    networks:
+      - app_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Handles embedding and reranking models (runs locally — no external API needed)
+  model_server:
+    image: onyxdotapp/onyx-model-server:${ONYX_VERSION:-latest}
+    container_name: onyx_model_server
+    environment:
+      - MIN_THREADS_ML_MODELS=${MIN_THREADS_ML_MODELS:-1}
+    volumes:
+      - model_cache:/root/.cache/huggingface
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  # Background worker: document indexing, celery tasks
+  background:
+    image: onyxdotapp/onyx-backend:${ONYX_VERSION:-latest}
+    container_name: onyx_background
+    command: /usr/bin/supervisord
+    depends_on:
+      relational_db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+      model_server:
+        condition: service_started
+    environment:
+      - POSTGRES_HOST=relational_db
+      - POSTGRES_USER=${POSTGRES_USER:-onyx}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-onyx}
+      - POSTGRES_DB=${POSTGRES_DB:-onyx}
+      - REDIS_HOST=cache
+      - AUTH_TYPE=${AUTH_TYPE:-disabled}
+      - ENCRYPTION_KEY_SECRET=${ENCRYPTION_KEY_SECRET}
+      - GEN_AI_MODEL_PROVIDER=${GEN_AI_MODEL_PROVIDER:-openai}
+      - GEN_AI_MODEL_VERSION=${GEN_AI_MODEL_VERSION:-gpt-4o-mini}
+      - GEN_AI_API_KEY=${GEN_AI_API_KEY}
+      - MODEL_SERVER_HOST=model_server
+      - DISABLE_TELEMETRY=${DISABLE_TELEMETRY:-true}
+    volumes:
+      - model_cache:/root/.cache/huggingface
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  # Main FastAPI backend: REST API + MCP tool registration
+  api_server:
+    image: onyxdotapp/onyx-backend:${ONYX_VERSION:-latest}
+    container_name: onyx_api_server
+    command: >
+      /bin/sh -c "alembic upgrade head &&
+      echo 'Starting Onyx API server' &&
+      uvicorn onyx.main:app --host 0.0.0.0 --port 8080"
+    depends_on:
+      relational_db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+      model_server:
+        condition: service_started
+    environment:
+      - POSTGRES_HOST=relational_db
+      - POSTGRES_USER=${POSTGRES_USER:-onyx}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-onyx}
+      - POSTGRES_DB=${POSTGRES_DB:-onyx}
+      - REDIS_HOST=cache
+      - AUTH_TYPE=${AUTH_TYPE:-disabled}
+      - ENCRYPTION_KEY_SECRET=${ENCRYPTION_KEY_SECRET}
+      - GEN_AI_MODEL_PROVIDER=${GEN_AI_MODEL_PROVIDER:-openai}
+      - GEN_AI_MODEL_VERSION=${GEN_AI_MODEL_VERSION:-gpt-4o-mini}
+      - GEN_AI_API_KEY=${GEN_AI_API_KEY}
+      - MODEL_SERVER_HOST=model_server
+      - DISABLE_TELEMETRY=${DISABLE_TELEMETRY:-true}
+      # MCP server URL — reachable inside the shared Docker network
+      - CUSTOM_TOOL_ENDPOINT=http://prediction_server:8000/mcp
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  # Next.js frontend served via nginx
+  web_server:
+    image: onyxdotapp/onyx-web-server:${ONYX_VERSION:-latest}
+    container_name: onyx_web_server
+    depends_on:
+      - api_server
+    environment:
+      - INTERNAL_URL=http://api_server:8080
+      - WEB_DOMAIN=${WEB_DOMAIN:-http://localhost:3000}
+    networks:
+      - app_network
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+# ── Volumes ───────────────────────────────────────────────────────────────────
+volumes:
+  db_data:       # Postgres persistent data
+  model_cache:   # HuggingFace model cache shared between background and model_server
+
+# ── Networks ──────────────────────────────────────────────────────────────────
+networks:
+  app_network:
+    driver: bridge
+    # The prediction server is reachable from Onyx at:
+    #   http://prediction_server:8000/mcp
+    # No public exposure of the MCP endpoint is needed.
