@@ -24,6 +24,7 @@ services:
       MODEL_BACKEND: ${MODEL_BACKEND:-onnx}
       MODEL_PATH: ${MODEL_PATH:-server/models/example_model.onnx}
       DEFAULT_PREDICTION_VALUE: ${DEFAULT_PREDICTION_VALUE:-0}
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
     volumes:
       # Mount model artefacts from the host so swapping a production model
       # only requires replacing the file and restarting — no image rebuild.
