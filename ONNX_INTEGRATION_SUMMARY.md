@@ -16,8 +16,10 @@ Successfully integrated ONNX Runtime support into the supermarket stock predicti
 **New Dependencies:**
 
 - `onnxruntime>=1.18,<2.0` - For ONNX model inference
-- `scikit-learn>=1.4,<2.0` - For example model generation
-- `skl2onnx>=1.16,<2.0` - For sklearn to ONNX conversion
+- `fastapi-mcp>=0.2.0` - For exposing FastAPI endpoints as MCP tools
+- `mcp>=1.8.0,<1.26.0` - MCP protocol library (pinned to avoid breaking changes in 1.26.0)
+- `scikit-learn>=1.4,<2.0` - For example model generation (training extra)
+- `skl2onnx>=1.16,<2.0` - For sklearn to ONNX conversion (training extra)
 
 ### 2. Example ONNX Model Created ✓
 
@@ -192,8 +194,8 @@ curl -X POST http://localhost:8000/predict \
 
 | File | Status | Purpose |
 |------|--------|---------|
-| `requirements.txt` | Modified | Added ONNX Runtime and related dependencies |
-| `pyproject.toml` | Modified | Added dependencies to project config |
+| `requirements.txt` | Modified | Added ONNX Runtime, fastapi-mcp, and mcp dependencies |
+| `pyproject.toml` | Modified | Added dependencies to project config (including mcp<1.26.0 pin) |
 | `server/models/example_model.onnx` | Created | Example ONNX model artifact |
 | `server/models/README.md` | Created | Comprehensive model deployment documentation |
 | `server/infrastructure/models/onnx_model.py` | Created | ONNX adapter implementing ModelPort |
