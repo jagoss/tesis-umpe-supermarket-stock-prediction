@@ -6,7 +6,7 @@
 #
 # Onyx UI:        http://localhost:3000
 # Prediction API: http://localhost:8000
-# MCP endpoint:   http://localhost:8000/mcp  (or http://prediction_server:8000/mcp inside the network)
+# MCP endpoint:   http://localhost:8000/mcp  (or http://prediction-server.local:8000/mcp inside the network)
 #
 # Hardware requirements (Onyx): ≥4 vCPU, ≥10 GB RAM, ≥32 GB disk.
 # Reference: https://docs.onyx.app/quickstart
@@ -24,12 +24,15 @@ services:
       MODEL_BACKEND: ${MODEL_BACKEND:-onnx}
       MODEL_PATH: ${MODEL_PATH:-server/models/example_model.onnx}
       DEFAULT_PREDICTION_VALUE: ${DEFAULT_PREDICTION_VALUE:-0}
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
     volumes:
       # Mount model artefacts from the host so swapping a production model
       # only requires replacing the file and restarting — no image rebuild.
       - ${MODEL_ARTIFACTS_PATH:-./server/models}:/app/server/models:ro
     networks:
-      - app_network
+      app_network:
+        aliases:
+          - prediction-server.local
     ports:
       - "8000:8000"
     restart: unless-stopped
@@ -73,6 +76,22 @@ services:
       timeout: 5s
       retries: 5
 
+  # Vespa search engine — handles document indexing and retrieval
+  index:
+    image: vespaengine/vespa:8.609.39
+    networks:
+      - app_network
+    restart: unless-stopped
+    environment:
+      - VESPA_SKIP_UPGRADE_CHECK=${VESPA_SKIP_UPGRADE_CHECK:-true}
+    volumes:
+      - vespa_volume:/opt/vespa/var
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "6"
+
   # Handles embedding and reranking models (runs locally — no external API needed)
   model_server:
     image: onyxdotapp/onyx-model-server:${ONYX_VERSION:-latest}
@@ -95,6 +114,8 @@ services:
         condition: service_healthy
       cache:
         condition: service_healthy
+      index:
+        condition: service_started
       model_server:
         condition: service_started
     environment:
@@ -103,13 +124,19 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-onyx}
       - POSTGRES_DB=${POSTGRES_DB:-onyx}
       - REDIS_HOST=cache
-      - AUTH_TYPE=${AUTH_TYPE:-disabled}
+      - VESPA_HOST=index
+      - AUTH_TYPE=${AUTH_TYPE:-basic}
       - ENCRYPTION_KEY_SECRET=${ENCRYPTION_KEY_SECRET}
       - GEN_AI_MODEL_PROVIDER=${GEN_AI_MODEL_PROVIDER:-openai}
       - GEN_AI_MODEL_VERSION=${GEN_AI_MODEL_VERSION:-gpt-4o-mini}
       - GEN_AI_API_KEY=${GEN_AI_API_KEY}
       - MODEL_SERVER_HOST=model_server
       - DISABLE_TELEMETRY=${DISABLE_TELEMETRY:-true}
+      - USE_SEPARATE_BACKGROUND_WORKERS=false
+      - USE_LIGHTWEIGHT_BACKGROUND_WORKER=true
+      - DANSWER_RUNNING_IN_DOCKER=true
+      - ONYX_VERSION=${ONYX_VERSION:-latest}
+      - FILE_STORE_BACKEND=postgres
     volumes:
       - model_cache:/root/.cache/huggingface
     networks:
@@ -129,6 +156,8 @@ services:
         condition: service_healthy
       cache:
         condition: service_healthy
+      index:
+        condition: service_started
       model_server:
         condition: service_started
     environment:
@@ -137,15 +166,19 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-onyx}
       - POSTGRES_DB=${POSTGRES_DB:-onyx}
       - REDIS_HOST=cache
-      - AUTH_TYPE=${AUTH_TYPE:-disabled}
+      - VESPA_HOST=index
+      - AUTH_TYPE=${AUTH_TYPE:-basic}
       - ENCRYPTION_KEY_SECRET=${ENCRYPTION_KEY_SECRET}
       - GEN_AI_MODEL_PROVIDER=${GEN_AI_MODEL_PROVIDER:-openai}
       - GEN_AI_MODEL_VERSION=${GEN_AI_MODEL_VERSION:-gpt-4o-mini}
       - GEN_AI_API_KEY=${GEN_AI_API_KEY}
       - MODEL_SERVER_HOST=model_server
       - DISABLE_TELEMETRY=${DISABLE_TELEMETRY:-true}
+      - DANSWER_RUNNING_IN_DOCKER=true
+      - ONYX_VERSION=${ONYX_VERSION:-latest}
+      - FILE_STORE_BACKEND=postgres
       # MCP server URL — reachable inside the shared Docker network
-      - CUSTOM_TOOL_ENDPOINT=http://prediction_server:8000/mcp
+      - CUSTOM_TOOL_ENDPOINT=http://prediction-server.local:8000/mcp
     networks:
       - app_network
     restart: unless-stopped
@@ -159,6 +192,8 @@ services:
     environment:
       - INTERNAL_URL=http://api_server:8080
       - WEB_DOMAIN=${WEB_DOMAIN:-http://localhost:3000}
+      # Enable the Next.js /api/* proxy (in production, nginx normally handles this)
+      - OVERRIDE_API_PRODUCTION=true
     networks:
       - app_network
     ports:
@@ -167,13 +202,14 @@ services:
 
 # ── Volumes ───────────────────────────────────────────────────────────────────
 volumes:
-  db_data:       # Postgres persistent data
-  model_cache:   # HuggingFace model cache shared between background and model_server
+  db_data:         # Postgres persistent data
+  model_cache:     # HuggingFace model cache shared between background and model_server
+  vespa_volume:    # Vespa index data
 
 # ── Networks ──────────────────────────────────────────────────────────────────
 networks:
   app_network:
     driver: bridge
     # The prediction server is reachable from Onyx at:
-    #   http://prediction_server:8000/mcp
+    #   http://prediction-server.local:8000/mcp
     # No public exposure of the MCP endpoint is needed.

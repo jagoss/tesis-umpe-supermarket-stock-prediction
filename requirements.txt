@@ -6,3 +6,4 @@ uvicorn[standard]>=0.30,<0.32
 pydantic>=2.6,<3.0
 onnxruntime>=1.18,<2.0
 fastapi-mcp>=0.2.0
+mcp>=1.8.0,<1.26.0

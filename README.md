@@ -40,6 +40,7 @@ Configuration is driven by environment variables:
 | `MODEL_BACKEND`            | Model backend — `onnx` or `dummy`           | `onnx`                |
 | `MODEL_PATH`               | Path to the `.onnx` model file              | `server/models/example_model.onnx` |
 | `DEFAULT_PREDICTION_VALUE` | Constant value for the `dummy` backend      | `0`                   |
+| `CORS_ORIGINS`             | Comma-separated allowed CORS origins        | `*`                   |
 
 ### Run
 
@@ -55,6 +56,64 @@ MODEL_BACKEND=dummy python -m server.main
 ```
 
 The server starts at `http://127.0.0.1:8000`.
+
+---
+
+## Docker Deployment
+
+The project includes a `docker-compose.yml` that starts the prediction server
+alongside a full self-hosted [Onyx](https://onyx.app) stack (8 services total).
+
+### Prerequisites
+
+- Docker Desktop (Windows/macOS) or Docker Engine + Compose v2 plugin (Linux)
+- At least **6 vCPU, 12–16 GB RAM, 32 GB disk**
+
+### Setup
+
+```bash
+# 1. Copy and edit environment variables
+cp .env.example .env
+# Edit .env — see below for critical settings
+
+# 2. Start all services
+docker compose up -d
+
+# 3. Verify
+curl http://localhost:8000/health       # Prediction API
+open http://localhost:3000              # Onyx UI
+```
+
+### Critical `.env` settings
+
+| Variable | Notes |
+|---|---|
+| `ENCRYPTION_KEY_SECRET` | Must be exactly 16, 24, or 32 characters. Generate: `python -c "import secrets; print(secrets.token_urlsafe(24))"` |
+| `AUTH_TYPE` | Use `basic` (default). `disabled` is no longer supported. |
+| `GEN_AI_API_KEY` | Leave empty for non-OpenAI providers. Configure LLM via Onyx Admin UI. |
+
+### Services
+
+| Service | Port | Description |
+|---|---|---|
+| `prediction_server` | `8000` | Stock prediction API + MCP endpoint |
+| `web_server` (Onyx UI) | `3000` | Chat interface |
+| `api_server` | — | Onyx backend (internal) |
+| `background` | — | Onyx task worker (internal) |
+| `model_server` | — | Embedding models (internal) |
+| `index` (Vespa) | — | Search engine (internal) |
+| `relational_db` | — | PostgreSQL (internal) |
+| `cache` | — | Redis (internal) |
+
+### Stop
+
+```bash
+docker compose down          # Stop containers
+docker compose down -v       # Stop + remove volumes (full reset)
+```
+
+For detailed Onyx setup (LLM configuration, MCP registration, agent creation),
+see [`.docs/onyx_integration.md`](.docs/onyx_integration.md).
 
 ---
 
@@ -124,6 +183,10 @@ LLM-based assistants. The `predict_stock` tool is automatically generated from t
 curl http://127.0.0.1:8000/mcp
 ```
 
+> **Note:** The `mcp` Python package is pinned to `>=1.8.0,<1.26.0` for
+> compatibility with Onyx's MCP client. Version 1.26.0 introduced a breaking
+> change in the Streamable HTTP transport.
+
 ---
 
 ## Architecture
@@ -165,8 +228,11 @@ server via MCP. Onyx provides the chat UI, LLM orchestration, memory, and tool r
 User → Onyx (Chat UI + LLM) → MCP → Prediction Server (/predict) → ONNX Model
 ```
 
-For the full setup guide (registering the MCP server, creating an agent/persona, and
-testing the integration), see
+The MCP endpoint is reachable inside the Docker network at
+`http://prediction-server.local:8000/mcp` (using a network alias).
+
+For the full setup guide (LLM configuration, registering the MCP server, creating
+an agent/persona, troubleshooting, and testing the integration), see
 [`.docs/onyx_integration.md`](.docs/onyx_integration.md).
 
 ---
@@ -229,6 +295,9 @@ Coverage reports are uploaded as GitHub Actions artifacts.
 │   └── main.py                # Uvicorn entrypoint
 ├── agent/                     # Minimal agent package (Onyx replaces custom agent)
 ├── .docs/                     # Architecture docs, Onyx integration guide
+├── docker-compose.yml         # Full stack: prediction server + Onyx (8 services)
+├── Dockerfile                 # Prediction server image
+├── .env.example               # Environment variable template
 ├── pyproject.toml             # Project metadata & tool config
 ├── requirements.txt           # Pinned runtime dependencies
 └── README.md                  # This file

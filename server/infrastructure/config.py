@@ -17,6 +17,7 @@ class Settings:
     model_backend: str
     model_path: str
     default_prediction_value: float
+    cors_origins: list[str]
 
 
 def load_settings() -> Settings:
@@ -27,11 +28,16 @@ def load_settings() -> Settings:
         MODEL_PATH: Path to the model artifact file. Defaults are resolved
             based on ``MODEL_BACKEND`` when not set.
         DEFAULT_PREDICTION_VALUE: Constant value returned by the ``dummy`` backend.
+        CORS_ORIGINS: Comma-separated list of allowed CORS origins.
+            Defaults to ``*`` (allow all) for development convenience.
 
     Returns:
         Settings instance with loaded configuration.
 
     """
+    cors_origins_raw = os.getenv("CORS_ORIGINS", "*").strip()
+    cors_origins = [o.strip() for o in cors_origins_raw.split(",") if o.strip()]
+
     model_backend = os.getenv("MODEL_BACKEND", "onnx").strip().lower()
     default_prediction_value = float(os.getenv("DEFAULT_PREDICTION_VALUE", "0"))
 
@@ -53,6 +59,7 @@ def load_settings() -> Settings:
         model_backend=model_backend,
         model_path=model_path,
         default_prediction_value=default_prediction_value,
+        cors_origins=cors_origins,
     )
 
 

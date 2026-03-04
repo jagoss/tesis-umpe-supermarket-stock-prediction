@@ -5,10 +5,12 @@ from __future__ import annotations
 import logging
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi_mcp import FastApiMCP  # type: ignore[import-untyped]
 
 from server.application import PredictStockInput
 from server.domain import DomainError, ValidationError
+from server.infrastructure.config import load_settings
 from server.infrastructure.container import get_predict_use_case_singleton
 from server.infrastructure.logging import configure_logging
 from server.interface.http.schemas import PredictionPoint as HttpPredictionPoint
@@ -20,6 +22,18 @@ from server.interface.http.schemas import (
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Supermarket Stock Prediction Server", version="0.1.0")
+
+# ---------------------------------------------------------------------------
+# CORS — allow cross-origin requests (needed for browser-based / Onyx access)
+# ---------------------------------------------------------------------------
+_settings = load_settings()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_settings.cors_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.on_event("startup")
