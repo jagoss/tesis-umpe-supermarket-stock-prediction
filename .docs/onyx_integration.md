@@ -1,47 +1,48 @@
-# Integración con Onyx como Interfaz de Chat
+# Onyx Integration as Chat Interface
 
-## Resumen
+## Overview
 
-[Onyx](https://onyx.app) es una plataforma de asistente IA de código abierto que proporciona
-interfaz de chat, orquestación de LLM, memoria conversacional y enrutamiento de herramientas.
-Se conecta al servidor de predicción a través del **Model Context Protocol (MCP)**.
+[Onyx](https://onyx.app) is an open-source AI assistant platform that provides
+a chat interface, LLM orchestration, conversational memory, and tool routing.
+It connects to the prediction server via the **Model Context Protocol (MCP)**.
 
 ```
-Usuario ─► Onyx (Chat UI + LLM + Memoria) ─► MCP Streamable HTTP ─► Prediction Server (/predict)
+User ─► Onyx (Chat UI + LLM + Memory) ─► MCP Streamable HTTP ─► Prediction Server (/predict)
 ```
 
-Onyx reemplaza la necesidad de construir un agente conversacional personalizado con LangChain.
-El servidor de predicción expone sus capacidades como herramientas MCP usando la biblioteca
-`fastapi-mcp`, que genera automáticamente herramientas MCP a partir de los endpoints FastAPI
-existentes.
+Onyx replaces the need to build a custom conversational agent with LangChain.
+The prediction server exposes its capabilities as MCP tools using the
+`fastapi-mcp` library, which automatically generates MCP tools from existing
+FastAPI endpoints.
 
 ---
 
-## Versión Testeada
+## Tested Versions
 
-| Componente | Versión | Notas |
+| Component | Version | Notes |
 |---|---|---|
-| **Onyx** | `latest` (configurable vía `ONYX_VERSION` en `.env`) | Imágenes: `onyxdotapp/onyx-backend`, `onyxdotapp/onyx-web-server`, `onyxdotapp/onyx-model-server` |
-| **Prediction Server** | `0.1.0` | Imagen construida localmente desde `Dockerfile` |
-| **Docker Compose** | v2 (plugin) | Requerido — no usar `docker-compose` v1 |
+| **Onyx** | `latest` (configurable via `ONYX_VERSION` in `.env`) | Images: `onyxdotapp/onyx-backend`, `onyxdotapp/onyx-web-server`, `onyxdotapp/onyx-model-server` |
+| **Prediction Server** | `0.1.0` | Image built locally from `Dockerfile` |
+| **Docker Compose** | v2 (plugin) | Required — do not use `docker-compose` v1 |
+| **MCP (Python)** | `>=1.8.0,<1.26.0` | Pinned to avoid breaking changes in 1.26.0 (incompatible with Onyx's MCP client) |
 
-> Para fijar una versión específica de Onyx, establecer `ONYX_VERSION=v0.20.0` (o la versión
-> deseada) en el archivo `.env`.
+> To pin a specific Onyx version, set `ONYX_VERSION=v0.20.0` (or the desired
+> version) in the `.env` file.
 
 ---
 
-## Arquitectura
+## Architecture
 
 ```plantuml
 @startuml
-title Arquitectura Actualizada – Onyx + MCP + Prediction Server
+title Architecture – Onyx + MCP + Prediction Server
 
-actor Usuario
+actor User
 
 rectangle "Onyx" as Onyx {
   component "Chat UI" as UI
-  component "LLM (GPT-4o / Llama)" as LLM
-  component "Memoria Conversacional" as Mem
+  component "LLM (Claude / GPT-4o)" as LLM
+  component "Conversational Memory" as Mem
   component "Tool Router" as Router
 }
 
@@ -51,390 +52,404 @@ rectangle "Prediction Server" as Server {
   component "ONNX Model" as Model
 }
 
-Usuario --> UI : pregunta
-UI --> LLM : interpreta
-LLM --> Router : decide herramienta
+User --> UI : question
+UI --> LLM : interpret
+LLM --> Router : select tool
 Router --> API : MCP Streamable HTTP
-API --> UC : ejecuta predicción
-UC --> Model : inferencia
-Model --> UC : resultado
-UC --> API : respuesta
-API --> Router : resultado MCP
-Router --> LLM : contexto
-LLM --> UI : respuesta natural
-UI --> Usuario : respuesta
+API --> UC : run prediction
+UC --> Model : inference
+Model --> UC : result
+UC --> API : response
+API --> Router : MCP result
+Router --> LLM : context
+LLM --> UI : natural language response
+UI --> User : answer
 
-Mem <--> LLM : historial
+Mem <--> LLM : history
 @enduml
 ```
 
-### Red Docker
+### Docker Network
 
-Todos los servicios se ejecutan en la red Docker compartida `app_network`:
+All services run on the shared Docker network `app_network`:
 
 ```
 ┌─────────────────────────────── app_network ───────────────────────────────┐
 │                                                                           │
 │  prediction_server:8000  ◄──── MCP ────  api_server:8080 (Onyx backend)  │
-│         │                                       │                         │
-│    localhost:8000                          web_server:3000                 │
-│    (API + docs)                           localhost:3000                   │
-│                                           (Onyx UI)                       │
+│  alias: prediction-server.local         │                                 │
+│         │                          web_server:3000                        │
+│    localhost:8000                  localhost:3000                          │
+│    (API + docs)                   (Onyx UI)                               │
 │                                                                           │
-│  relational_db:5432    cache:6379    model_server (embeddings)            │
-│  (PostgreSQL)          (Redis)       background (workers)                 │
-│                                                                           │
+│  relational_db:5432    cache:6379    index (Vespa search engine)          │
+│  (PostgreSQL)          (Redis)       model_server (embeddings)            │
+│                                      background (workers)                 │
 └───────────────────────────────────────────────────────────────────────────┘
 ```
 
-- El servidor de predicción es accesible **dentro** de la red Docker en:
-  `http://prediction_server:8000/mcp`
-- **No se necesita exponer el endpoint MCP públicamente** — Onyx se comunica
-  internamente a través de la red Docker compartida.
-- Los puertos expuestos al host son solo para conveniencia del desarrollador:
-  - `8000` — API de predicción y documentación Swagger
-  - `3000` — Interfaz web de Onyx
+- The prediction server is reachable **inside** the Docker network at:
+  `http://prediction-server.local:8000/mcp`
+- The network alias `prediction-server.local` is used because Onyx's URL
+  validation rejects hostnames without dots (e.g., `prediction_server`).
+- **No public exposure of the MCP endpoint is needed** — Onyx communicates
+  internally through the shared Docker network.
+- Ports exposed to the host are for developer convenience only:
+  - `8000` — Prediction API and Swagger docs
+  - `3000` — Onyx web interface
 
 ---
 
-## Inicio Rápido con Docker (Recomendado)
+## Quick Start with Docker (Recommended)
 
-### Prerrequisitos
+### Prerequisites
 
-- Docker Desktop (Windows/macOS) o Docker Engine + Compose plugin (Linux)
-- Al menos **6 vCPU, 12-16 GB RAM, 32 GB disco** (Onyx necesita ≥4 vCPU, ≥10 GB RAM)
-- Una API key de LLM (OpenAI, Anthropic, etc.) — o un LLM local (Ollama)
+- Docker Desktop (Windows/macOS) or Docker Engine + Compose plugin (Linux)
+- At least **6 vCPU, 12–16 GB RAM, 32 GB disk** (Onyx needs ≥4 vCPU, ≥10 GB RAM)
+- An LLM API key (OpenAI, Anthropic, etc.) — or a local LLM (Ollama)
 
-### 1. Configurar variables de entorno
+### 1. Configure environment variables
 
 ```bash
 cp .env.example .env
 ```
 
-Editar `.env` y configurar al menos:
-- `POSTGRES_PASSWORD` — contraseña segura para PostgreSQL
-- `ENCRYPTION_KEY_SECRET` — generar con `python -c "import secrets; print(secrets.token_hex(32))"`
-- `GEN_AI_API_KEY` — API key del proveedor LLM
-- `GEN_AI_MODEL_PROVIDER` — `openai`, `anthropic`, `ollama`, etc.
-- `GEN_AI_MODEL_VERSION` — modelo a usar (ej: `gpt-4o-mini`)
+Edit `.env` and configure at least:
 
-### 2. Iniciar los contenedores
+| Variable | How to set | Notes |
+|---|---|---|
+| `POSTGRES_PASSWORD` | A strong password | Used by Onyx's PostgreSQL database |
+| `ENCRYPTION_KEY_SECRET` | `python -c "import secrets; print(secrets.token_urlsafe(24))"` | **Must be exactly 16, 24, or 32 characters** (not hex-encoded). Onyx has a bug in `_get_trimmed_key()` that requires plain ASCII strings of exact AES key size. |
+| `AUTH_TYPE` | `basic` | `disabled` is no longer supported in recent Onyx versions. Use `basic` for username/password authentication. |
+| `GEN_AI_API_KEY` | **Leave empty** | For non-OpenAI providers (Anthropic, Ollama), leave this empty and configure the LLM via the Onyx Admin UI after first login. Onyx's dev auto-setup only supports OpenAI. |
+| `GEN_AI_MODEL_PROVIDER` | `anthropic`, `openai`, `ollama` | Only informational when API key is empty — actual config is done via UI. |
+| `GEN_AI_MODEL_VERSION` | `claude-sonnet-4-6`, `gpt-4o-mini`, etc. | Must use the full model ID (e.g., `claude-sonnet-4-6`, not `sonnet-4.6`). |
 
-```bash
-bash scripts/containers.sh
-```
+> **Important:** Onyx's automatic LLM setup (`setup_postgres()`) only works with
+> OpenAI. If you set `GEN_AI_API_KEY` with a non-OpenAI key, the background worker
+> will crash with a model validation error. For Anthropic or other providers, leave
+> `GEN_AI_API_KEY` empty and configure the provider through the Admin UI.
 
-O directamente con Docker Compose:
+### 2. Start the containers
 
 ```bash
 docker compose up -d
 ```
 
-### 3. Verificar que los servicios están corriendo
+### 3. Verify services are running
 
 ```bash
-# Estado de los contenedores
-bash scripts/containers.sh status
+# Container status
+docker compose ps
 
-# Health check del servidor de predicción
+# Prediction server health check
 curl http://localhost:8000/health
 
-# Verificar endpoint MCP
+# Verify MCP endpoint
 curl http://localhost:8000/mcp
 
-# Documentación Swagger
-# Abrir en navegador: http://localhost:8000/docs
+# Swagger documentation
+# Open in browser: http://localhost:8000/docs
 ```
 
-### 4. Acceder a la interfaz de Onyx
+### 4. Access the Onyx interface
 
-Abrir en el navegador: **http://localhost:3000**
+Open in browser: **http://localhost:3000**
 
-> La primera vez, Onyx puede tardar unos minutos en inicializar mientras descarga modelos
-> de embeddings.
+> On first launch, Onyx may take a few minutes to initialize while downloading
+> embedding models.
+
+### 5. Stop all containers
+
+```bash
+docker compose down
+```
+
+To also remove persistent volumes (database, model cache, Vespa index):
+
+```bash
+docker compose down -v
+```
 
 ---
 
-## Configuración Inicial de Onyx (Primer Inicio)
+## Initial Onyx Setup (First Launch)
 
-La primera vez que se accede a la interfaz de Onyx, es necesario completar la configuración
-inicial. Sin estos pasos, el chat y las herramientas MCP **no funcionarán**.
+The first time you access the Onyx interface, you need to complete the initial
+setup. Without these steps, chat and MCP tools **will not work**.
 
-### 1. Crear el primer usuario (Admin)
+### 1. Create the first user (Admin)
 
-1. Abrir **http://localhost:3000**.
-2. Si `AUTH_TYPE=disabled` (por defecto), se accede directamente sin login.
-3. Si `AUTH_TYPE=basic` u otro, registrar un usuario. **El primer usuario registrado
-   se convierte automáticamente en Administrador.**
+1. Open **http://localhost:3000**.
+2. With `AUTH_TYPE=basic`, register a user. **The first registered user
+   automatically becomes an Administrator.**
 
-> Solo los Administradores pueden acceder al Admin Panel, configurar LLMs,
-> registrar herramientas MCP y crear agentes.
+> Only Administrators can access the Admin Panel, configure LLMs,
+> register MCP tools, and create agents.
 
-### 2. Configurar el proveedor de LLM
+### 2. Configure the LLM provider
 
-Este es el paso más crítico. Sin un LLM configurado, Onyx no puede procesar mensajes
-ni invocar herramientas.
+This is the most critical step. Without a configured LLM, Onyx cannot process
+messages or invoke tools.
 
-1. Hacer clic en el **ícono de perfil** (esquina superior derecha).
-2. Seleccionar **"Admin Panel"**.
-3. Ir a la sección **"LLM"** (o **"AI Models"**).
-4. Seleccionar el proveedor deseado:
+1. Click the **profile icon** (top-right corner).
+2. Select **"Admin Panel"**.
+3. Go to the **"LLM"** section (or **"AI Models"**).
+4. Select the desired provider:
 
-   | Proveedor | Requiere | Notas |
-   |-----------|----------|-------|
-   | **OpenAI** | API key de OpenAI | Modelos recomendados: `gpt-4o-mini` (rápido/económico), `gpt-4o` (mejor calidad) |
-   | **Anthropic** | API key de Anthropic | Modelos: `claude-sonnet-4-6`, `claude-opus-4-6` |
-   | **Ollama** | Ollama corriendo localmente | Gratuito, sin API key. Modelos: `llama3`, `mistral`, `qwen` |
-   | **Azure OpenAI** | Endpoint + API key de Azure | Para organizaciones con Azure |
-   | **Personalizado** | URL base + API key | Cualquier API compatible con OpenAI |
+   | Provider | Requires | Notes |
+   |----------|----------|-------|
+   | **OpenAI** | OpenAI API key | Recommended models: `gpt-4o-mini` (fast/cheap), `gpt-4o` (best quality) |
+   | **Anthropic** | Anthropic API key | Models: `claude-sonnet-4-6`, `claude-opus-4-6`. Get key at [console.anthropic.com](https://console.anthropic.com/settings/keys) |
+   | **Ollama** | Ollama running locally | Free, no API key. Models: `llama3`, `mistral`, `qwen` |
+   | **Azure OpenAI** | Azure endpoint + API key | For organizations with Azure |
+   | **Custom** | Base URL + API key | Any OpenAI-compatible API |
 
-5. Completar los campos:
-   - **Display Name**: nombre descriptivo (ej: "OpenAI Production")
-   - **API Key**: la clave del proveedor
-   - **Default Model**: modelo principal para chat y herramientas (ej: `gpt-4o-mini`)
-   - **Fast Model** (opcional): modelo ligero para tareas internas como nombrar
-     conversaciones y expandir consultas (ej: `gpt-4o-mini`)
+5. Fill in the fields:
+   - **Display Name**: descriptive name (e.g., "Anthropic Production")
+   - **API Key**: the provider's key
+   - **Default Model**: main model for chat and tools (e.g., `claude-sonnet-4-6`)
+   - **Fast Model** (optional): lightweight model for internal tasks like naming
+     conversations and expanding queries (e.g., `claude-haiku-4-5-20251001`)
 
-6. Hacer clic en **"Save"** o **"Test & Save"**.
+6. Click **"Save"** or **"Test & Save"**.
 
-#### Configuración vía variables de entorno (alternativa)
+> **Important:** Do NOT configure the LLM via environment variables for
+> non-OpenAI providers. Onyx's auto-setup hardcodes the OpenAI provider, and
+> setting `GEN_AI_API_KEY` with an Anthropic key will cause the background
+> worker to crash. Always configure non-OpenAI providers through the Admin UI.
 
-Las variables en `.env` pre-configuran el LLM al iniciar los contenedores:
+#### Using a local LLM with Ollama (free)
 
-```bash
-GEN_AI_MODEL_PROVIDER=openai
-GEN_AI_MODEL_VERSION=gpt-4o-mini
-GEN_AI_API_KEY=sk-...
-```
+To avoid API costs during development or the thesis demo:
 
-> **Nota:** Incluso con las variables de entorno configuradas, se recomienda verificar
-> la configuración del LLM en el Admin Panel después del primer inicio.
+1. Install [Ollama](https://ollama.ai) on the host machine.
+2. Download a model: `ollama pull llama3.3`
+3. In the Onyx Admin Panel, configure the provider as **Ollama** with
+   base URL: `http://host.docker.internal:11434` (accesses the host's Ollama from Docker).
 
-#### Usar un LLM local con Ollama (sin costo)
+### 3. Verify Onyx is working
 
-Para evitar costos de API durante desarrollo o la demostración de tesis:
+Before configuring MCP tools, verify that basic chat works:
 
-1. Instalar [Ollama](https://ollama.ai) en la máquina host.
-2. Descargar un modelo: `ollama pull llama3.3`
-3. Configurar en `.env`:
-   ```bash
-   GEN_AI_MODEL_PROVIDER=ollama
-   GEN_AI_MODEL_VERSION=llama3.3
-   GEN_AI_API_KEY=
-   ```
-4. En el Admin Panel de Onyx, configurar el proveedor como **Ollama** con
-   URL base: `http://host.docker.internal:11434` (accede al Ollama del host desde Docker).
+1. Go to the main chat screen (**http://localhost:3000**).
+2. Type a simple message: *"Hello, are you working?"*
+3. Onyx should respond using the configured LLM.
 
-### 3. Verificar que Onyx está funcional
-
-Antes de configurar herramientas MCP, verificar que el chat básico funciona:
-
-1. Ir a la pantalla principal de chat (**http://localhost:3000**).
-2. Escribir un mensaje simple: *"Hola, ¿estás funcionando?"*
-3. Onyx debería responder usando el LLM configurado.
-
-Si no responde o muestra un error, revisar:
-- Que el LLM esté configurado correctamente en el Admin Panel.
-- Que la API key sea válida.
-- Logs del backend: `bash scripts/containers.sh logs api_server`
+If it doesn't respond or shows an error, check:
+- That the LLM is configured correctly in the Admin Panel.
+- That the API key is valid.
+- Backend logs: `docker compose logs api_server`
 
 ---
 
-## Verificación de Salud de los Servicios Onyx
+## Service Health Checks
 
-### Health checks por servicio
+### Per-service health checks
 
 ```bash
-# Prediction server (nuestro)
+# Prediction server (ours)
 curl http://localhost:8000/health
-# Esperado: {"status":"ok"}
+# Expected: {"status":"ok"}
 
-# Onyx API server (puerto interno 8080, no expuesto por defecto)
-# Verificar vía Docker:
+# Onyx API server (internal port 8080, not exposed by default)
+# Check via Docker:
 docker exec onyx_api_server curl -s http://localhost:8080/health
-# Esperado: {"success":true, ...}
+# Expected: {"success":true, ...}
 
-# Estado general de todos los contenedores
+# Overall container status
 docker compose ps
 ```
 
-### Interpretar el estado de los contenedores
+### Interpreting container status
 
-| Contenedor | Estado esperado | Si falla |
-|------------|----------------|----------|
-| `prediction_server` | `Up (healthy)` | Verificar logs: `docker compose logs prediction_server` |
-| `onyx_api_server` | `Up` | Verificar LLM config y DB: `docker compose logs api_server` |
-| `onyx_web_server` | `Up` | Verificar que `api_server` esté corriendo |
-| `onyx_background` | `Up` | Worker de tareas — verificar conexión a Redis y DB |
-| `onyx_model_server` | `Up` | Descarga modelos de embeddings en primer inicio (~2-5 min) |
-| `onyx_relational_db` | `Up (healthy)` | Verificar `POSTGRES_PASSWORD` en `.env` |
-| `onyx_cache` | `Up (healthy)` | Redis — raramente falla |
+| Container | Expected Status | If it fails |
+|-----------|----------------|-------------|
+| `prediction_server` | `Up (healthy)` | Check logs: `docker compose logs prediction_server` |
+| `onyx_api_server` | `Up` | Check LLM config and DB: `docker compose logs api_server` |
+| `onyx_web_server` | `Up` | Check that `api_server` is running |
+| `onyx_background` | `Up` | Task worker — check connection to Redis and DB |
+| `onyx_model_server` | `Up` | Downloads embedding models on first launch (~2–5 min) |
+| `onyx_relational_db` | `Up (healthy)` | Check `POSTGRES_PASSWORD` in `.env` |
+| `onyx_cache` | `Up (healthy)` | Redis — rarely fails |
+| `index` (Vespa) | `Up` | Search engine — check logs: `docker compose logs index` |
 
-### Logs útiles para diagnóstico
+### Useful logs for diagnosis
 
 ```bash
-# Logs de un servicio específico
-bash scripts/containers.sh logs api_server
+# Logs for a specific service
+docker compose logs api_server
 
-# Logs de todos los servicios
-bash scripts/containers.sh logs
+# Logs for all services
+docker compose logs
 
-# Últimas 50 líneas del prediction server
+# Last 50 lines of the prediction server
 docker compose logs --tail 50 prediction_server
 ```
 
 ---
 
-## Gestión de Versiones de Onyx
+## Onyx Version Management
 
-### Fijar una versión específica
+### Pin a specific version
 
-Para garantizar reproducibilidad (especialmente para la defensa de tesis), fijar la
-versión de Onyx en `.env`:
+To ensure reproducibility (especially for the thesis defense), pin the
+Onyx version in `.env`:
 
 ```bash
-# En .env — usar una versión estable específica
+# In .env — use a specific stable version
 ONYX_VERSION=v0.20.0
 ```
 
-> **Recomendación para tesis:** Fijar la versión una vez que la integración funcione
-> correctamente. Usar `latest` durante desarrollo y cambiar a una versión fija antes
-> de la demostración.
+> **Recommendation for thesis:** Pin the version once the integration works
+> correctly. Use `latest` during development and switch to a fixed version
+> before the demo.
 
-### Verificar versiones disponibles
+### Check available versions
 
 ```bash
-# Ver la última versión estable publicada
+# See the latest stable published version
 curl -s https://cloud.onyx.app/api/versions
 ```
 
-### Actualizar Onyx
+### Update Onyx
 
 ```bash
-# Cambiar ONYX_VERSION en .env, luego:
-bash scripts/containers.sh down
-bash scripts/containers.sh
+# Change ONYX_VERSION in .env, then:
+docker compose down
+docker compose up -d
 ```
 
-### Notas sobre versiones
+### Version notes
 
-- Las versiones estables usan el formato `vX.Y.Z` (ej: `v0.20.0`).
-- `latest` apunta a la última versión estable publicada.
-- La rama `main` de Onyx es de desarrollo — **no usar para producción**.
-- Onyx publica nuevas versiones estables los lunes; hotfixes se publican inmediatamente.
+- Stable versions use the format `vX.Y.Z` (e.g., `v0.20.0`).
+- `latest` points to the latest stable published release.
+- Onyx's `main` branch is for development — **do not use in production**.
+- Onyx publishes new stable releases on Mondays; hotfixes are released immediately.
 
 ---
 
-## Configuración sin Docker (Desarrollo Local)
+## Running Without Docker (Local Development)
 
-Para ejecutar el servidor de predicción sin Docker (útil para desarrollo rápido):
+To run the prediction server without Docker (useful for rapid development):
 
 ```bash
-# Instalar dependencias
+# Install dependencies
 pip install -e .
 
-# Iniciar el servidor (backend dummy para testing)
+# Start the server (dummy backend for testing)
 MODEL_BACKEND=dummy python -m server.main
 
-# Verificar
+# Verify
 curl http://127.0.0.1:8000/health
 curl http://127.0.0.1:8000/mcp
 ```
 
-> Nota: En modo local, la URL MCP para Onyx será `http://host.docker.internal:8000/mcp`
-> si Onyx corre en Docker, o `http://127.0.0.1:8000/mcp` si ambos corren nativamente.
+> Note: In local mode, the MCP URL for Onyx will be `http://host.docker.internal:8000/mcp`
+> if Onyx runs in Docker, or `http://127.0.0.1:8000/mcp` if both run natively.
 
 ---
 
-## Registro del Servidor MCP en Onyx
+## Registering the MCP Server in Onyx
 
-### Paso a paso en el Admin Panel
+### Step by step in the Admin Panel
 
-1. Acceder a **http://localhost:3000** e iniciar sesión (si `AUTH_TYPE` no es `disabled`).
-2. Ir al **Admin Panel** (ícono de engranaje o `/admin`).
-3. Navegar a **Tools** > **Actions**.
-4. Hacer clic en **"From MCP server"**.
-5. En el campo URL, ingresar:
-   - Con Docker: **`http://prediction_server:8000/mcp`**
-   - Sin Docker (Onyx local): `http://127.0.0.1:8000/mcp`
-   - Sin Docker (Onyx en Docker, server local): `http://host.docker.internal:8000/mcp`
-6. Hacer clic en **"List Actions"**.
-7. Verificar que aparece la herramienta **`predict_stock`** con su descripción.
-8. Hacer clic en **"Save"** o **"Add"** para registrar las acciones.
+1. Go to **http://localhost:3000** and log in.
+2. Go to the **Admin Panel** (gear icon or `/admin`).
+3. Navigate to **Tools** > **Actions**.
+4. Click **"From MCP server"**.
+5. In the URL field, enter:
+   - With Docker: **`http://prediction-server.local:8000/mcp`**
+   - Without Docker (Onyx local): `http://127.0.0.1:8000/mcp`
+   - Without Docker (Onyx in Docker, server local): `http://host.docker.internal:8000/mcp`
+6. Click **"List Actions"**.
+7. Verify that the **`predict_stock`** tool appears with its description.
+8. Click **"Save"** or **"Add"** to register the actions.
 
-> **Importante:** La URL interna `http://prediction_server:8000/mcp` solo funciona cuando
-> ambos servicios están en la misma red Docker (`app_network`). Esta es la configuración
-> por defecto de `docker-compose.yml`.
+> **Important:** The internal URL `http://prediction-server.local:8000/mcp` only works
+> when both services are on the same Docker network (`app_network`). This is the default
+> configuration in `docker-compose.yml`. The network alias `prediction-server.local` is
+> defined in the `prediction_server` service — note the hyphen (not underscore).
 
 ---
 
-## Creación del Agente/Persona
+## Creating the Agent/Persona
 
-### 1. Crear el agente
+### 1. Create the agent
 
-1. En el Admin Panel, ir a **Agents / Assistants**.
-2. Hacer clic en **"Create New Assistant"**.
-3. Nombre: **"Asistente de Inventario"** (o el nombre preferido).
+1. In the Admin Panel, go to **Agents / Assistants**.
+2. Click **"Create New Assistant"**.
+3. Name: **"Inventory Assistant"** (or your preferred name).
 
-### 2. Configurar el prompt del sistema
+### 2. Configure the system prompt
 
-Copiar y pegar el siguiente prompt:
+Copy and paste the following prompt:
 
 ```
-Eres un asistente inteligente especializado en gestión de inventario de supermercados.
+You are an assistant specialized in supermarket inventory management. Your goal is to help plan stock orders using demand predictions.
 
-Tu función principal es ayudar a los usuarios a planificar sus pedidos de stock usando
-predicciones de demanda. Cuando el usuario pregunte sobre necesidades futuras de stock,
-pronósticos de demanda, o cuántas unidades de un producto debe pedir una tienda, usa
-la herramienta predict_stock.
+## When to use predict_stock
 
-Comportamiento esperado:
-1. Confirma los parámetros con el usuario antes de ejecutar la predicción:
-   - ID del producto (ej: PROD-001)
-   - ID de la tienda (ej: STORE-A)
-   - Rango de fechas (fecha inicio y fecha fin)
-2. Ejecuta la predicción usando la herramienta predict_stock.
-3. Presenta los resultados de forma clara:
-   - Tabla con fecha y cantidad predicha por día.
-   - Resumen con el total de unidades para el período.
-   - Recomendación de pedido.
+Use the predict_stock tool when the user asks about:
+- Future stock needs
+- Demand forecasts or predictions
+- How many units of a product to order
 
-Si el usuario proporciona datos históricos de ventas, inclúyelos en el campo history
-de la predicción para mejorar la precisión.
+## Workflow
 
-Responde siempre en el mismo idioma que use el usuario.
+1. **Gather parameters**: Before running a prediction, make sure you have:
+   - `product_id`: Product ID (e.g., PROD-001)
+   - `store_id`: Store ID (e.g., STORE-A)
+   - `start_date`: Forecast start date (YYYY-MM-DD)
+   - `end_date`: Forecast end date (YYYY-MM-DD)
+   - `history` (optional): If the user provides historical sales data, include it as date-quantity pairs to improve accuracy.
+
+   If any required parameter is missing, ask for it before proceeding. Do not make up values.
+
+2. **Run the prediction**: Call predict_stock with the gathered parameters.
+
+3. **Present results**:
+   - Table with predicted quantity per day.
+   - Total units for the entire period.
+   - Concrete order recommendation based on the results.
+
+## Rules
+
+- Always respond in the same language the user is using.
+- Never assume values for product_id or store_id; always confirm them with the user.
+- If the prediction fails or returns an error, explain the problem clearly and suggest how to fix it.
 ```
 
-### 3. Habilitar la herramienta
+### 3. Enable the tool
 
-1. En la sección **"Tools"** del agente, habilitar **`predict_stock`**.
-2. Guardar el agente.
+1. In the agent's **"Tools"** section, enable **`predict_stock`**.
+2. Save the agent.
 
-### 4. Probar la integración
+### 4. Test the integration
 
-Iniciar una conversación con el agente creado y hacer preguntas como:
+Start a conversation with the created agent and ask questions like:
 
-> "¿Cuántas unidades del producto PROD-001 debería pedir la tienda STORE-A
-> para la primera semana de marzo 2026?"
+> "How many units of product PROD-001 should store STORE-A order
+> for the first week of March 2026?"
 
-El agente debería:
-1. Identificar que necesita usar `predict_stock`.
-2. Extraer los parámetros de la pregunta (o confirmar con el usuario).
-3. Llamar al servidor MCP con los parámetros correctos.
-4. Presentar los resultados en lenguaje natural con una tabla y recomendación.
+The agent should:
+1. Identify that it needs to use `predict_stock`.
+2. Extract the parameters from the question (or ask the user to confirm).
+3. Call the MCP server with the correct parameters.
+4. Present the results in natural language with a table and recommendation.
 
 ---
 
-## Herramientas MCP Expuestas
+## Exposed MCP Tools
 
-| Herramienta | Operación | Descripción |
+| Tool | Operation | Description |
 |---|---|---|
-| `predict_stock` | `POST /predict` | Predice la demanda de un producto en una tienda para un rango de fechas |
+| `predict_stock` | `POST /predict` | Predicts demand for a product at a store over a date range |
 
-> La operación `check_health` (`GET /health`) está excluida intencionalmente del MCP
-> ya que es solo para monitoreo de infraestructura.
+> The `check_health` operation (`GET /health`) is intentionally excluded from MCP
+> as it is only for infrastructure monitoring.
 
-### Esquema de entrada (`predict_stock`)
+### Input schema (`predict_stock`)
 
 ```json
 {
@@ -449,13 +464,13 @@ El agente debería:
 }
 ```
 
-- `product_id` (string, requerido) — Identificador del producto.
-- `store_id` (string, requerido) — Identificador de la tienda.
-- `start_date` (date, requerido) — Fecha de inicio del período de predicción.
-- `end_date` (date, requerido) — Fecha de fin del período de predicción.
-- `history` (array, opcional) — Datos históricos de ventas recientes.
+- `product_id` (string, required) — Product identifier.
+- `store_id` (string, required) — Store identifier.
+- `start_date` (date, required) — Prediction period start date.
+- `end_date` (date, required) — Prediction period end date.
+- `history` (array, optional) — Recent historical sales data.
 
-### Esquema de salida
+### Output schema
 
 ```json
 {
@@ -470,39 +485,79 @@ El agente debería:
 
 ---
 
-## Notas de Red y Seguridad
+## Network and Security Notes
 
-### Red Docker compartida
+### Shared Docker network
 
-- Todos los servicios están en la red `app_network` (bridge driver).
-- La comunicación MCP entre Onyx y el prediction server es **interna** — no atraviesa
-  la red pública.
-- No se necesita configuración de firewall ni DNS.
+- All services are on the `app_network` network (bridge driver).
+- MCP communication between Onyx and the prediction server is **internal** — it
+  does not traverse the public network.
+- No firewall or DNS configuration is needed.
 
 ### CORS
 
-El servidor de predicción incluye middleware CORS configurable vía la variable de entorno
-`CORS_ORIGINS`:
-- **Desarrollo:** `*` (permitir todos los orígenes) — es el valor por defecto.
-- **Producción:** Restringir a orígenes específicos (ej: `http://localhost:3000,https://tudominio.com`).
+The prediction server includes configurable CORS middleware via the `CORS_ORIGINS`
+environment variable:
+- **Development:** `*` (allow all origins) — this is the default.
+- **Production:** Restrict to specific origins (e.g., `http://localhost:3000,https://yourdomain.com`).
 
-### Autenticación
+### Authentication
 
-- La autenticación del prediction server no está habilitada por defecto (diseñado para
-  uso interno dentro de la red Docker).
-- Si se expone el servidor fuera de la red Docker, considerar agregar autenticación
-  con API key (Phase 6).
-- Onyx tiene su propia autenticación configurable vía `AUTH_TYPE` en `.env`.
+- Prediction server authentication is not enabled by default (designed for
+  internal use within the Docker network).
+- If the server is exposed outside the Docker network, consider adding API key
+  authentication (Phase 6).
+- Onyx has its own configurable authentication via `AUTH_TYPE` in `.env`.
+  Use `basic` for username/password login (the default).
 
 ---
 
-## Solución de Problemas
+## Troubleshooting
 
-| Problema | Solución |
-|----------|----------|
-| Onyx no lista herramientas | Verificar que el prediction server está corriendo: `curl http://localhost:8000/mcp`. Revisar que la URL en Onyx sea `http://prediction_server:8000/mcp`. |
-| Error de conexión desde Onyx | Confirmar que ambos servicios están en `app_network`: `docker network inspect <project>_app_network`. |
-| Predicciones inesperadas | Verificar `MODEL_BACKEND` en `.env`. Si es `dummy`, las predicciones serán constantes. |
-| Onyx tarda en iniciar | Normal en el primer inicio — descarga modelos de embeddings (~2-5 min). Verificar con `bash scripts/containers.sh logs model_server`. |
-| Error "connection refused" en MCP | El prediction server puede no estar listo aún. Esperar a que pase el health check: `docker compose ps`. |
-| CORS errors en el navegador | Verificar que `CORS_ORIGINS` incluya el origen correcto. Para desarrollo, usar `*`. |
+| Problem | Solution |
+|---------|----------|
+| Onyx doesn't list tools | Verify the prediction server is running: `curl http://localhost:8000/mcp`. Check that the URL in Onyx is `http://prediction-server.local:8000/mcp` (hyphen, not underscore). |
+| Connection error from Onyx | Confirm both services are on `app_network`: `docker network inspect <project>_app_network`. |
+| Unexpected predictions | Check `MODEL_BACKEND` in `.env`. If set to `dummy`, predictions will be constant. |
+| Onyx slow to start | Normal on first launch — downloads embedding models (~2–5 min). Check with `docker compose logs model_server`. |
+| "Connection refused" on MCP | The prediction server may not be ready yet. Wait for the health check to pass: `docker compose ps`. |
+| CORS errors in browser | Check that `CORS_ORIGINS` includes the correct origin. For development, use `*`. |
+| `onyx_background` crash-looping | Check logs: `docker compose logs background`. Common causes: invalid `ENCRYPTION_KEY_SECRET` (must be exactly 16/24/32 chars), missing Vespa service, or invalid LLM configuration. |
+| "Application error: client-side exception" at localhost:3000 | Usually means `api_server` or `background` is down. Check `docker compose ps` and fix backend issues first. |
+| "Failed to discover tools" in Onyx | MCP version mismatch — ensure `mcp<1.26.0` is pinned in `requirements.txt`. Rebuild the prediction server image: `docker compose build prediction_server`. Also verify the URL uses `prediction-server.local` (hyphen). |
+| Model validation error in background logs | `GEN_AI_API_KEY` is set with a non-OpenAI key. Clear it in `.env` and configure the LLM provider via the Admin UI instead. |
+| AES invalid key size error | `ENCRYPTION_KEY_SECRET` must be exactly 16, 24, or 32 **characters** (not hex-encoded). Generate with: `python -c "import secrets; print(secrets.token_urlsafe(24))"` |
+| 404 on `/api/health` or `/api/auth/register` | Add `OVERRIDE_API_PRODUCTION=true` to the `web_server` environment in `docker-compose.yml`. |
+| S3 NoCredentialsError in api_server logs | Add `FILE_STORE_BACKEND=postgres` to both `api_server` and `background` environments in `docker-compose.yml`. |
+
+---
+
+## Key Configuration in docker-compose.yml
+
+The following environment variables in `docker-compose.yml` are critical and were
+discovered during integration testing:
+
+| Variable | Service | Value | Why |
+|---|---|---|---|
+| `FILE_STORE_BACKEND` | api_server, background | `postgres` | Latest Onyx defaults to S3; without this, you get `NoCredentialsError` |
+| `OVERRIDE_API_PRODUCTION` | web_server | `true` | Enables the Next.js `/api/*` proxy; without it, API calls return 404 |
+| `DANSWER_RUNNING_IN_DOCKER` | api_server, background | `true` | Legacy flag still required by Onyx internals |
+| `USE_SEPARATE_BACKGROUND_WORKERS` | background | `false` | Required by supervisord configuration |
+| `USE_LIGHTWEIGHT_BACKGROUND_WORKER` | background | `true` | Required by supervisord configuration |
+| `VESPA_HOST` | api_server, background | `index` | Points to the Vespa search engine service |
+| `CUSTOM_TOOL_ENDPOINT` | api_server | `http://prediction-server.local:8000/mcp` | Pre-registers the MCP tool endpoint |
+
+---
+
+## Docker Compose Services
+
+| Service | Image | Purpose |
+|---|---|---|
+| `prediction_server` | Built from `Dockerfile` | Stock prediction API + MCP endpoint |
+| `relational_db` | `postgres:15.2-alpine` | PostgreSQL database for Onyx |
+| `cache` | `redis:7.4-alpine` | Redis cache for Onyx |
+| `index` | `vespaengine/vespa:8.609.39` | Vespa search engine — document indexing and retrieval |
+| `model_server` | `onyxdotapp/onyx-model-server` | Embedding and reranking models (runs locally) |
+| `background` | `onyxdotapp/onyx-backend` | Background worker: document indexing, celery tasks |
+| `api_server` | `onyxdotapp/onyx-backend` | Main FastAPI backend: REST API + MCP tool registration |
+| `web_server` | `onyxdotapp/onyx-web-server` | Next.js frontend served via nginx |
