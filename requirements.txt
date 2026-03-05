@@ -7,3 +7,7 @@ pydantic>=2.6,<3.0
 onnxruntime>=1.18,<2.0
 fastapi-mcp>=0.2.0
 mcp>=1.8.0,<1.26.0
+python-json-logger>=2.0,<3.0
+prometheus-client>=0.20,<1.0
+prometheus-fastapi-instrumentator>=7.0,<8.0
+slowapi>=0.1.9,<1.0
