@@ -20,7 +20,18 @@
       "Bash(head:*)",
       "Bash(cd /c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction && python -c \"from fastapi_mcp import FastApiMCP; print\\([m for m in dir\\(FastApiMCP\\) if not m.startswith\\('_'\\)]\\)\" 2>&1)",
       "Bash(cd /c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction && python -m pytest server/tests/ -v --timeout=30 2>&1)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(python:*)",
+      "Bash(docker compose:*)",
+      "Bash(docker ps:*)",
+      "Bash(docker exec:*)",
+      "Bash(docker:*)",
+      "Bash(gh api:*)",
+      "Bash(curl:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(grep -r \"gunicorn\\\\|workers\\\\|processes\" . --include=*.py --include=*.md --include=Dockerfile)",
+      "Bash(git push:*)"
     ]
   }
 }
