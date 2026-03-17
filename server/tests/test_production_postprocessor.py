@@ -42,7 +42,7 @@ class TestProductionPostprocessor:
 
         assert result.points[0].quantity == pytest.approx(110.0)  # 0.5*20+100
         assert result.points[1].quantity == pytest.approx(120.0)  # 1.0*20+100
-        assert result.points[2].quantity == pytest.approx(90.0)   # -0.5*20+100
+        assert result.points[2].quantity == pytest.approx(90.0)  # -0.5*20+100
 
     def test_negative_clipped_to_zero(self) -> None:
         # mean=0, std=1; scaled=-5 → real=-5 → clipped to 0
