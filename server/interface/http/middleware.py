@@ -17,9 +17,7 @@ _SKIP_PATHS = {"/health", "/metrics"}
 class CorrelationIdMiddleware(BaseHTTPMiddleware):
     """Read or generate a correlation ID and echo it in the response."""
 
-    async def dispatch(
-        self, request: Request, call_next: RequestResponseEndpoint
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         """Inject or propagate the correlation ID for each request."""
         cid = request.headers.get("x-correlation-id") or str(uuid.uuid4())
         set_correlation_id(cid)
@@ -39,9 +37,7 @@ class ApiKeyMiddleware(BaseHTTPMiddleware):
         super().__init__(app)  # type: ignore[arg-type]
         self._api_key = api_key
 
-    async def dispatch(
-        self, request: Request, call_next: RequestResponseEndpoint
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         """Reject requests missing a valid API key, unless the path is exempt."""
         if not self._api_key or request.url.path in _SKIP_PATHS:
             return await call_next(request)
@@ -65,9 +61,7 @@ class TimeoutMiddleware(BaseHTTPMiddleware):
         super().__init__(app)  # type: ignore[arg-type]
         self._timeout = timeout_seconds
 
-    async def dispatch(
-        self, request: Request, call_next: RequestResponseEndpoint
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         """Return 504 if the handler does not respond within the configured timeout."""
         if request.url.path in _SKIP_PATHS:
             return await call_next(request)
