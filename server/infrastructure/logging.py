@@ -22,7 +22,7 @@ class _CorrelationIdFilter(logging.Filter):
     """Inject ``correlation_id`` into every log record."""
 
     def filter(self, record: logging.LogRecord) -> bool:  # noqa: A003
-        record.correlation_id = get_correlation_id()  # type: ignore[attr-defined]
+        record.correlation_id = get_correlation_id()
         return True
 
 
@@ -41,11 +41,11 @@ def configure_logging(level: int | str = "INFO", fmt: str = "text") -> None:
     correlation_filter = _CorrelationIdFilter()
 
     if fmt == "json":
-        from pythonjsonlogger.jsonlogger import JsonFormatter  # type: ignore[import-untyped]
+        from pythonjsonlogger.jsonlogger import JsonFormatter
 
         handler = logging.StreamHandler()
         handler.setFormatter(
-            JsonFormatter(
+            JsonFormatter(  # type: ignore[no-untyped-call]
                 fmt="%(asctime)s %(levelname)s %(name)s %(correlation_id)s %(message)s",
             )
         )
@@ -55,9 +55,7 @@ def configure_logging(level: int | str = "INFO", fmt: str = "text") -> None:
         root.handlers.clear()
         root.addHandler(handler)
     else:
-        logging.basicConfig(
-            level=level, format="%(asctime)s %(levelname)s %(name)s - %(message)s"
-        )
+        logging.basicConfig(level=level, format="%(asctime)s %(levelname)s %(name)s - %(message)s")
         # Add correlation filter to all existing handlers
-        for handler in logging.getLogger().handlers:
-            handler.addFilter(correlation_filter)
+        for h in logging.getLogger().handlers:
+            h.addFilter(correlation_filter)

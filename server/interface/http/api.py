@@ -7,10 +7,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_mcp import FastApiMCP  # type: ignore[import-untyped]
-from prometheus_fastapi_instrumentator import Instrumentator  # type: ignore[import-untyped]
-from slowapi import Limiter  # type: ignore[import-untyped]
-from slowapi.errors import RateLimitExceeded  # type: ignore[import-untyped]
-from slowapi.util import get_remote_address  # type: ignore[import-untyped]
+from prometheus_fastapi_instrumentator import Instrumentator
+from slowapi import Limiter
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 from starlette.responses import JSONResponse
 
 from server.application import PredictStockInput
@@ -59,9 +59,7 @@ async def _lifespan(_application: FastAPI) -> AsyncIterator[None]:
     yield
 
 
-app = FastAPI(
-    title="Supermarket Stock Prediction Server", version="0.1.0", lifespan=_lifespan
-)
+app = FastAPI(title="Supermarket Stock Prediction Server", version="0.1.0", lifespan=_lifespan)
 
 app.state.limiter = _limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
@@ -71,9 +69,9 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # ty
 # Register: Timeout → ApiKey → CorrelationId → CORS (last = outermost)
 # Execution order for requests: CORS → CorrelationId → ApiKey → Timeout
 # ---------------------------------------------------------------------------
-app.add_middleware(TimeoutMiddleware, timeout_seconds=_REQUEST_TIMEOUT_SECONDS)  # type: ignore[arg-type]
-app.add_middleware(ApiKeyMiddleware, api_key=_settings.api_key)  # type: ignore[arg-type]
-app.add_middleware(CorrelationIdMiddleware)  # type: ignore[arg-type]
+app.add_middleware(TimeoutMiddleware, timeout_seconds=_REQUEST_TIMEOUT_SECONDS)
+app.add_middleware(ApiKeyMiddleware, api_key=_settings.api_key)
+app.add_middleware(CorrelationIdMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_settings.cors_origins,
@@ -107,7 +105,9 @@ async def health() -> dict[str, str]:
     },
 )
 @_limiter.limit(_settings.rate_limit)
-async def predict(request: Request, payload: PredictionRequest) -> PredictionResponse:  # noqa: ARG001
+async def predict(
+    request: Request, payload: PredictionRequest
+) -> PredictionResponse:  # noqa: ARG001
     """Predict stock for a product and store over a date range.
 
     Use this tool when the user asks about future stock needs, demand forecasts,

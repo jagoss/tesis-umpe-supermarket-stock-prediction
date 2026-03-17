@@ -100,9 +100,7 @@ class TestApiKeyMiddleware:
             "start_date": "2026-03-02",
             "end_date": "2026-03-04",
         }
-        resp = client_with_auth.post(
-            "/predict", json=payload, headers={"X-API-Key": "test-secret"}
-        )
+        resp = client_with_auth.post("/predict", json=payload, headers={"X-API-Key": "test-secret"})
         assert resp.status_code == 200
 
     def test_predict_200_with_bearer_token(self, client_with_auth: TestClient) -> None:
@@ -126,9 +124,7 @@ class TestApiKeyMiddleware:
             "start_date": "2026-03-02",
             "end_date": "2026-03-04",
         }
-        resp = client_with_auth.post(
-            "/predict", json=payload, headers={"X-API-Key": "wrong-key"}
-        )
+        resp = client_with_auth.post("/predict", json=payload, headers={"X-API-Key": "wrong-key"})
         assert resp.status_code == 401
 
 
