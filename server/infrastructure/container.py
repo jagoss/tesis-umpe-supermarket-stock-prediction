@@ -19,8 +19,14 @@ from server.application.use_cases import PredictStockUseCase
 from server.infrastructure.config import Settings, load_settings
 from server.infrastructure.data import ParquetDataRepository
 from server.infrastructure.models import DummyModel, ONNXModel
-from server.infrastructure.postprocessing import BasicPostprocessor, ProductionPostprocessor
-from server.infrastructure.preprocessing import BasicPreprocessor, ProductionPreprocessor
+from server.infrastructure.postprocessing import (
+    BasicPostprocessor,
+    ProductionPostprocessor,
+)
+from server.infrastructure.preprocessing import (
+    BasicPreprocessor,
+    ProductionPreprocessor,
+)
 
 _singleton_uc: PredictStockUseCase | None = None
 
