@@ -19,14 +19,16 @@ def tmp_parquet_files(tmp_path: Path) -> tuple[str, str]:
     for store in [1, 2]:
         for family in ["BEVERAGES", "BREAD"]:
             for d in [date(2017, 8, 1), date(2017, 8, 2), date(2017, 8, 3)]:
-                rows.append({
-                    "store_nbr": store,
-                    "family": family,
-                    "date": pd.Timestamp(d),
-                    "lag_1": float(store) + 0.1,
-                    "lag_7": float(store) + 0.7,
-                    "day_of_week": float(d.weekday()),
-                })
+                rows.append(
+                    {
+                        "store_nbr": store,
+                        "family": family,
+                        "date": pd.Timestamp(d),
+                        "lag_1": float(store) + 0.1,
+                        "lag_7": float(store) + 0.7,
+                        "day_of_week": float(d.weekday()),
+                    }
+                )
 
     features_df = pd.DataFrame(rows)
     features_path = tmp_path / "features.parquet"
