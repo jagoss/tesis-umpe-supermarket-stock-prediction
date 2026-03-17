@@ -10,6 +10,7 @@ from __future__ import annotations
 import logging
 from datetime import date
 from pathlib import Path
+from typing import cast
 
 import pandas as pd
 
@@ -72,14 +73,14 @@ class ParquetDataRepository(DataRepositoryPort):
         self._features: dict[tuple[str, str, date], list[float]] = {}
         feature_cols = self._feature_names
         for row in features_df.itertuples(index=False):
-            key = (str(row.store_nbr), row.family, row.date)
-            self._features[key] = [float(getattr(row, c)) for c in feature_cols]
+            feat_key = (str(row.store_nbr), str(row.family), cast(date, row.date))
+            self._features[feat_key] = [float(getattr(row, c)) for c in feature_cols]
 
         # Build scaler lookup: (store_nbr_str, family) -> (mean, std)
         self._scalers: dict[tuple[str, str], tuple[float, float]] = {}
         for row in scaler_df.itertuples(index=False):
-            key = (str(row.store_nbr), row.family)
-            self._scalers[key] = (float(row.mean), float(row.std))
+            scaler_key = (str(row.store_nbr), str(row.family))
+            self._scalers[scaler_key] = (float(cast(float, row.mean)), float(cast(float, row.std)))
 
         # Date range
         all_dates = features_df["date"].unique()
