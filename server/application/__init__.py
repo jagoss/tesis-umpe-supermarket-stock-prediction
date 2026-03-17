@@ -22,6 +22,7 @@ from server.application.dto import (
     PredictStockOutput,
 )
 from server.application.ports import (
+    DataRepositoryPort,
     ModelPort,
     ModelRawPrediction,
     PostprocessorPort,
@@ -38,4 +39,5 @@ __all__ = [
     "PreprocessorPort",
     "ModelPort",
     "PostprocessorPort",
+    "DataRepositoryPort",
 ]

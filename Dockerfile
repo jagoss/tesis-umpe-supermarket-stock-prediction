@@ -25,6 +25,9 @@ COPY --from=builder /install /usr/local
 COPY pyproject.toml ./
 COPY server/ ./server/
 
+# Copy pre-computed data files (if present; production builds should include these)
+COPY data/*.parquet ./data/
+
 # Non-root user for security
 RUN adduser --disabled-password --gecos "" appuser \
     && chown -R appuser /app
@@ -35,7 +38,10 @@ USER appuser
 ENV PYTHONPATH=/app \
     MODEL_BACKEND=onnx \
     MODEL_PATH=server/models/example_model.onnx \
-    DEFAULT_PREDICTION_VALUE=0
+    DEFAULT_PREDICTION_VALUE=0 \
+    PREPROCESSOR_BACKEND=basic \
+    DATA_PATH=data/precomputed_features.parquet \
+    SCALER_PATH=data/scaler_params.parquet
 
 EXPOSE 8000
 

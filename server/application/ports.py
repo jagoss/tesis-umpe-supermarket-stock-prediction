@@ -25,6 +25,7 @@ class PreprocessedData:
     end_date: date
     horizon: int
     history: list[tuple[date, float]] | None = None
+    features: list[list[float]] | None = None
 
 
 @dataclass(slots=True)
@@ -61,4 +62,38 @@ class PostprocessorPort(Protocol):
         self, raw: ModelRawPrediction, original: PredictStockInput
     ) -> StockForecast:
         """Convert raw model outputs to a domain ``StockForecast`` entity."""
+        ...
+
+
+class DataRepositoryPort(Protocol):
+    """Provides pre-computed feature vectors and scaler parameters for inference.
+
+    Implementations load static historical data (e.g. from Parquet files) and
+    expose O(1) lookups by ``(store_id, product_id, target_date)``.
+    """
+
+    def get_feature_vector(  # pragma: no cover
+        self, store_id: str, product_id: str, target_date: date
+    ) -> list[float] | None:
+        """Return the pre-computed feature vector for a specific series and date.
+
+        Returns ``None`` if the combination is not found.
+        """
+        ...
+
+    def get_feature_names(self) -> list[str]:  # pragma: no cover
+        """Return the ordered list of feature column names."""
+        ...
+
+    def get_scaler_params(  # pragma: no cover
+        self, store_id: str, product_id: str
+    ) -> tuple[float, float] | None:
+        """Return ``(mean, std)`` for the LocalStandardScaler of the given series.
+
+        Returns ``None`` if the series is not found.
+        """
+        ...
+
+    def get_available_date_range(self) -> tuple[date, date]:  # pragma: no cover
+        """Return the ``(min_date, max_date)`` available in the dataset."""
         ...

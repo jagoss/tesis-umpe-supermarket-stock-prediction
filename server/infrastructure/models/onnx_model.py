@@ -165,10 +165,11 @@ class ONNXModel(ModelPort):
         session = self._ensure_session_loaded()
 
         try:
-            # Build feature matrix: one row per horizon step
-            x_features: list[list[float]] = [
-                self._build_features(data, step) for step in range(data.horizon)
-            ]
+            # Use pre-computed features if available, otherwise build toy features
+            if data.features is not None:
+                x_features = data.features
+            else:
+                x_features = [self._build_features(data, step) for step in range(data.horizon)]
             x: npt.NDArray[np.float32] = np.array(x_features, dtype=np.float32)
 
             # Get input name from the ONNX model metadata
