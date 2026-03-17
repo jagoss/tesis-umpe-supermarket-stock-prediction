@@ -5,7 +5,11 @@ from __future__ import annotations
 import logging
 from unittest.mock import patch
 
-from server.infrastructure.logging import configure_logging
+from server.infrastructure.logging import (
+    configure_logging,
+    get_correlation_id,
+    set_correlation_id,
+)
 
 
 class TestConfigureLogging:
@@ -87,3 +91,26 @@ class TestConfigureLogging:
         fmt_str = handler.formatter._fmt
         assert fmt_str is not None
         assert "%(asctime)s" in fmt_str
+
+
+class TestJsonLogging:
+    def test_json_format_creates_handler(self) -> None:
+        root = logging.getLogger()
+        configure_logging(level="INFO", fmt="json")
+        assert root.handlers
+        handler = root.handlers[0]
+        assert handler.formatter is not None
+        # Restore text logging to avoid polluting other tests
+        configure_logging(level="INFO", fmt="text")
+
+
+class TestCorrelationId:
+    def test_get_default_is_empty(self) -> None:
+        set_correlation_id("")
+        assert get_correlation_id() == ""
+
+    def test_set_and_get(self) -> None:
+        set_correlation_id("test-123")
+        assert get_correlation_id() == "test-123"
+        # Clean up
+        set_correlation_id("")

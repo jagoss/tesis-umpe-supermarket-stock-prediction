@@ -1,0 +1,29 @@
+name: Security — Dependency Audit
+
+on:
+  push:
+    paths:
+      - "requirements.txt"
+      - "pyproject.toml"
+  pull_request:
+    paths:
+      - "requirements.txt"
+      - "pyproject.toml"
+  schedule:
+    - cron: "0 9 * * 1" # Weekly on Monday at 09:00 UTC
+
+jobs:
+  pip-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pip-audit
+        run: pip install "pip-audit>=2.7,<3.0"
+
+      - name: Audit dependencies
+        run: pip-audit --requirement requirements.txt --strict

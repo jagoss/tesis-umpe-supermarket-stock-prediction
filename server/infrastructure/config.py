@@ -18,6 +18,11 @@ class Settings:
     model_path: str
     default_prediction_value: float
     cors_origins: list[str]
+    log_format: str
+    log_level: str
+    api_key: str
+    rate_limit: str
+    max_horizon_days: int
 
 
 def load_settings() -> Settings:
@@ -55,11 +60,22 @@ def load_settings() -> Settings:
     else:
         model_path = model_path_default
 
+    log_format = os.getenv("LOG_FORMAT", "text").strip().lower()
+    log_level = os.getenv("LOG_LEVEL", "INFO").strip().upper()
+    api_key = os.getenv("API_KEY", "").strip()
+    rate_limit = os.getenv("RATE_LIMIT", "60/minute").strip()
+    max_horizon_days = int(os.getenv("MAX_HORIZON_DAYS", "365"))
+
     return Settings(
         model_backend=model_backend,
         model_path=model_path,
         default_prediction_value=default_prediction_value,
         cors_origins=cors_origins,
+        log_format=log_format,
+        log_level=log_level,
+        api_key=api_key,
+        rate_limit=rate_limit,
+        max_horizon_days=max_horizon_days,
     )
 
 
