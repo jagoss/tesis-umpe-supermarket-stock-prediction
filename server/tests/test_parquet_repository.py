@@ -35,12 +35,14 @@ def tmp_parquet_files(tmp_path: Path) -> tuple[str, str]:
     features_df.to_parquet(features_path, index=False)
 
     # Scaler Parquet
-    scaler_df = pd.DataFrame([
-        {"store_nbr": 1, "family": "BEVERAGES", "mean": 100.0, "std": 20.0},
-        {"store_nbr": 1, "family": "BREAD", "mean": 50.0, "std": 10.0},
-        {"store_nbr": 2, "family": "BEVERAGES", "mean": 200.0, "std": 40.0},
-        {"store_nbr": 2, "family": "BREAD", "mean": 80.0, "std": 15.0},
-    ])
+    scaler_df = pd.DataFrame(
+        [
+            {"store_nbr": 1, "family": "BEVERAGES", "mean": 100.0, "std": 20.0},
+            {"store_nbr": 1, "family": "BREAD", "mean": 50.0, "std": 10.0},
+            {"store_nbr": 2, "family": "BEVERAGES", "mean": 200.0, "std": 40.0},
+            {"store_nbr": 2, "family": "BREAD", "mean": 80.0, "std": 15.0},
+        ]
+    )
     scaler_path = tmp_path / "scaler.parquet"
     scaler_df.to_parquet(scaler_path, index=False)
 
