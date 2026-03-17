@@ -90,8 +90,8 @@ class TestParquetDataRepository:
 
     def test_missing_scaler_file_raises(self, tmp_path: Path) -> None:
         features_path = tmp_path / "features.parquet"
-        pd.DataFrame({
-            "store_nbr": [1], "family": ["X"], "date": [pd.Timestamp("2017-01-01")], "f1": [0.0]
-        }).to_parquet(features_path, index=False)
+        pd.DataFrame(
+            {"store_nbr": [1], "family": ["X"], "date": [pd.Timestamp("2017-01-01")], "f1": [0.0]}
+        ).to_parquet(features_path, index=False)
         with pytest.raises(FileNotFoundError, match="Scaler Parquet"):
             ParquetDataRepository(str(features_path), str(tmp_path / "nonexistent.parquet"))
