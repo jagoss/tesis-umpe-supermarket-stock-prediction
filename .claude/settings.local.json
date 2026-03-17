@@ -29,7 +29,9 @@
       "Bash(docker:*)",
       "Bash(gh api:*)",
       "Bash(curl:*)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(grep -r \"gunicorn\\\\|workers\\\\|processes\" . --include=*.py --include=*.md --include=Dockerfile)",
+      "Bash(git push:*)"
     ]
   }
 }
