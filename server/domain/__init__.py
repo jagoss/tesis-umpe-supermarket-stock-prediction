@@ -10,7 +10,12 @@ Exceptions:
 """
 
 from server.domain.entities import StockForecast, StockForecastPoint
-from server.domain.exceptions import DataNotFoundError, DomainError, PredictionError, ValidationError
+from server.domain.exceptions import (
+    DataNotFoundError,
+    DomainError,
+    PredictionError,
+    ValidationError,
+)
 
 __all__ = [
     "StockForecast",
