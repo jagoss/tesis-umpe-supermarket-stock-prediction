@@ -19,7 +19,8 @@ class CorrelationIdMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(
         self, request: Request, call_next: RequestResponseEndpoint
-    ) -> Response:  # noqa: D102
+    ) -> Response:
+        """Inject or propagate the correlation ID for each request."""
         cid = request.headers.get("x-correlation-id") or str(uuid.uuid4())
         set_correlation_id(cid)
         response = await call_next(request)
@@ -40,7 +41,8 @@ class ApiKeyMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(
         self, request: Request, call_next: RequestResponseEndpoint
-    ) -> Response:  # noqa: D102
+    ) -> Response:
+        """Reject requests missing a valid API key, unless the path is exempt."""
         if not self._api_key or request.url.path in _SKIP_PATHS:
             return await call_next(request)
 
@@ -65,7 +67,8 @@ class TimeoutMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(
         self, request: Request, call_next: RequestResponseEndpoint
-    ) -> Response:  # noqa: D102
+    ) -> Response:
+        """Return 504 if the handler does not respond within the configured timeout."""
         if request.url.path in _SKIP_PATHS:
             return await call_next(request)
         try:
