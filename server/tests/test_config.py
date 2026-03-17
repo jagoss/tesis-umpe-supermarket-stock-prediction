@@ -26,6 +26,9 @@ class TestSettings:
             api_key="",
             rate_limit="60/minute",
             max_horizon_days=365,
+            preprocessor_backend="basic",
+            data_path="",
+            scaler_path="",
         )
         assert s.model_backend == "dummy"
         assert s.model_path == "/tmp/m.onnx"

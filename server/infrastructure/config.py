@@ -23,6 +23,9 @@ class Settings:
     api_key: str
     rate_limit: str
     max_horizon_days: int
+    preprocessor_backend: str
+    data_path: str
+    scaler_path: str
 
 
 def load_settings() -> Settings:
@@ -66,6 +69,23 @@ def load_settings() -> Settings:
     rate_limit = os.getenv("RATE_LIMIT", "60/minute").strip()
     max_horizon_days = int(os.getenv("MAX_HORIZON_DAYS", "365"))
 
+    preprocessor_backend = os.getenv("PREPROCESSOR_BACKEND", "basic").strip().lower()
+
+    # Resolve data paths relative to project root when set
+    data_path_env = os.getenv("DATA_PATH", "")
+    scaler_path_env = os.getenv("SCALER_PATH", "")
+    project_root = _get_project_root()
+
+    data_path = ""
+    if data_path_env:
+        p = Path(data_path_env)
+        data_path = str(p if p.is_absolute() else project_root / p)
+
+    scaler_path = ""
+    if scaler_path_env:
+        p = Path(scaler_path_env)
+        scaler_path = str(p if p.is_absolute() else project_root / p)
+
     return Settings(
         model_backend=model_backend,
         model_path=model_path,
@@ -76,6 +96,9 @@ def load_settings() -> Settings:
         api_key=api_key,
         rate_limit=rate_limit,
         max_horizon_days=max_horizon_days,
+        preprocessor_backend=preprocessor_backend,
+        data_path=data_path,
+        scaler_path=scaler_path,
     )
 
 

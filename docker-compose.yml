@@ -25,10 +25,15 @@ services:
       MODEL_PATH: ${MODEL_PATH:-server/models/example_model.onnx}
       DEFAULT_PREDICTION_VALUE: ${DEFAULT_PREDICTION_VALUE:-0}
       CORS_ORIGINS: ${CORS_ORIGINS:-*}
+      PREPROCESSOR_BACKEND: ${PREPROCESSOR_BACKEND:-basic}
+      DATA_PATH: ${DATA_PATH:-data/precomputed_features.parquet}
+      SCALER_PATH: ${SCALER_PATH:-data/scaler_params.parquet}
     volumes:
       # Mount model artefacts from the host so swapping a production model
       # only requires replacing the file and restarting — no image rebuild.
       - ${MODEL_ARTIFACTS_PATH:-./server/models}:/app/server/models:ro
+      # Mount pre-computed data files for production preprocessor
+      - ${DATA_ARTIFACTS_PATH:-./data}:/app/data:ro
     networks:
       app_network:
         aliases:
