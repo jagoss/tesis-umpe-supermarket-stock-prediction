@@ -27,3 +27,7 @@ class ValidationError(DomainError):
 
 class PredictionError(DomainError):
     """Raised when a prediction cannot be produced or post-processed."""
+
+
+class DataNotFoundError(DomainError):
+    """Raised when required historical data is not available for a given query."""
