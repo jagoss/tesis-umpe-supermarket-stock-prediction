@@ -25,8 +25,8 @@ COPY --from=builder /install /usr/local
 COPY pyproject.toml ./
 COPY server/ ./server/
 
-# Copy pre-computed data files (if present; production builds should include these)
-COPY data/*.parquet ./data/
+# Create data directory — files are injected via volume mount in docker-compose / production
+RUN mkdir -p data
 
 # Non-root user for security
 RUN adduser --disabled-password --gecos "" appuser \
