@@ -41,7 +41,11 @@ class ProductionPreprocessor:
         features: list[list[float]] = []
         for step in range(horizon):
             target_date = data.start_date + timedelta(days=step)
-            vec = self._data_repo.get_feature_vector(data.store_id, data.product_id, target_date)
+            # Clamp to the available range: dates beyond max_date reuse the last
+            # pre-computed row (lag features are forward-filled, so this is the
+            # best available approximation for future dates).
+            lookup_date = min(target_date, max_date)
+            vec = self._data_repo.get_feature_vector(data.store_id, data.product_id, lookup_date)
             if vec is None:
                 raise DataNotFoundError(
                     f"No pre-computed features for store={data.store_id}, "
