@@ -1,10 +1,10 @@
-# Demo Web Page — Integración del Chat UI Custom
+# App Web — Integración del Chat UI Custom
 
 ## Descripción
 
 Página web estática con branding UMPE que embebe un chat UI custom (HTML + CSS + vanilla JS)
 que llama directamente a la API REST de Onyx. Servida por nginx en Docker como un
-servicio adicional del stack (`demo_web`).
+servicio adicional del stack (`app_web`).
 
 El chat UI reemplaza el antiguo `<onyx-chat-widget>` del CDN por una interfaz completamente
 controlada que permite visualizar tool calls y renderizar resultados de predicción
@@ -13,7 +13,7 @@ controlada que permite visualizar tool calls y renderizar resultados de predicci
 ## Arquitectura
 
 ```
-[Browser] → :80 nginx (demo_web)
+[Browser] → :80 nginx (app_web)
                ├── index.html  (landing con branding + chat UI markup)
                └── assets/
                      ├── style.css   (estilos BEM del chat)
@@ -65,11 +65,11 @@ La API key se inyecta en runtime mediante `envsubst` en el Dockerfile:
 ## Build y ejecución
 
 ```bash
-# Levantar solo la demo (requiere que el resto del stack esté corriendo)
-docker compose up -d demo_web
+# Levantar solo la app web (requiere que el resto del stack esté corriendo)
+docker compose up -d app_web
 
 # Rebuild después de cambios en los archivos estáticos
-docker compose build demo_web && docker compose up -d demo_web
+docker compose build app_web && docker compose up -d app_web
 ```
 
 Abrir `http://localhost:3003` en el navegador.
@@ -86,19 +86,19 @@ curl http://localhost:3003/ | grep onyx-api-key
 
 ### Colores
 
-Editar las CSS custom properties en `demo/assets/style.css`:
+Editar las CSS custom properties en `app-web/assets/style.css`:
 
 ```css
 :root {
-    --color-primary: #4F46E5;   /* Color principal (header, burbujas usuario, botón enviar) */
-    --color-bg: #F9FAFB;        /* Fondo de la página */
-    --color-surface: #FFFFFF;    /* Fondo del chat */
+    --ink: #0F1729;        /* Color principal (sidebar, headers) */
+    --paper: #F8F7F4;      /* Fondo de la página */
+    --teal: #0D6E6E;       /* Acento principal */
 }
 ```
 
 ### Logo
 
-Reemplazar `demo/assets/logo.png` con el logo real de UMPE. Tamaño recomendado:
+Reemplazar `app-web/assets/logo.png` con el logo real de UMPE. Tamaño recomendado:
 altura de 96px (se muestra a 48px para soporte retina).
 
 ### Visualización de predicciones
@@ -119,4 +119,4 @@ Renderiza:
 - `chat.js` usa `fetch()` + `ReadableStream` (no `EventSource`) porque necesita POST + headers custom.
 - El threading de conversación se mantiene guardando el `message_id` de cada respuesta y enviándolo
   como `parent_message_id` en el siguiente mensaje.
-- El servicio `demo_web` no modifica ningún componente existente del stack.
+- El servicio `app_web` no modifica ningún componente existente del stack.
