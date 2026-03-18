@@ -49,7 +49,10 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
 
-# Two workers is a reasonable default for a CPU-bound ONNX inference service.
-# Override with the WORKERS env var or a custom CMD in docker-compose / k8s.
+# Single worker: the production preprocessor loads a large Parquet dict into
+# memory at startup. Multiple workers each load their own copy, multiplying
+# RAM usage proportionally. FastAPI + asyncio handles concurrent requests
+# efficiently with a single process.
+# Override with --workers N in docker-compose / k8s if RAM is not a constraint.
 CMD ["uvicorn", "server.interface.http.api:app", \
-     "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+     "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
