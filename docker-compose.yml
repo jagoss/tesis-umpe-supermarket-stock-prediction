@@ -208,12 +208,12 @@ services:
       - "3000:3000"
     restart: unless-stopped
 
-  # ── Demo Web Page (landing with embedded Onyx chat widget) ──────────────────
-  demo_web:
+  # ── App Web (landing with embedded Onyx chat widget) ─────────────────────────
+  app_web:
     build:
-      context: ./demo
+      context: ./app-web
       dockerfile: Dockerfile
-    container_name: demo_web
+    container_name: app_web
     environment:
       - ONYX_WIDGET_API_KEY=${ONYX_WIDGET_API_KEY:-}
     ports:
