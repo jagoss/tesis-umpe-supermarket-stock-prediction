@@ -372,8 +372,18 @@ def main() -> None:
     parser.add_argument(
         "--buffer-days",
         type=int,
-        default=90,
-        help="Number of forecast buffer days beyond training data end",
+        default=3650,
+        help="Number of forecast buffer days beyond training data end (default: 3650 ≈ 10 years)",
+    )
+    parser.add_argument(
+        "--min-output-date",
+        type=str,
+        default="2025-01-01",
+        help=(
+            "Earliest date to include in the output Parquet (YYYY-MM-DD). "
+            "All history is used for lag computation; only rows on or after "
+            "this date are written to disk. Reduces file size and server RAM."
+        ),
     )
     args = parser.parse_args()
 
@@ -387,6 +397,17 @@ def main() -> None:
     scaler_params = compute_scaler_params(train)
     features = build_features(train, holidays, scaler_params, family_factors, args.buffer_days)
 
+    # --- Filter output to min_output_date (reduces Parquet size and server RAM) ---
+    min_output_date = pd.Timestamp(args.min_output_date)
+    before = len(features)
+    features = features[features["date"] >= min_output_date].copy()
+    logger.info(
+        "Output filter: kept %d rows (dropped %d rows before %s)",
+        len(features),
+        before - len(features),
+        min_output_date.date(),
+    )
+
     features_path = output_dir / "precomputed_features.parquet"
     scaler_path = output_dir / "scaler_params.parquet"
 
@@ -397,10 +418,11 @@ def main() -> None:
     scaler_params.to_parquet(scaler_path, index=False, engine="pyarrow")
 
     logger.info(
-        "Done! Features: %s (%.1f MB), Scalers: %s",
+        "Done! Features: %s (%.1f MB), Scalers: %s (%.1f MB)",
         features_path,
         features_path.stat().st_size / 1024 / 1024,
         scaler_path,
+        scaler_path.stat().st_size / 1024 / 1024,
     )
 
 
