@@ -31,7 +31,17 @@
       "Bash(curl:*)",
       "mcp__ide__getDiagnostics",
       "Bash(grep -r \"gunicorn\\\\|workers\\\\|processes\" . --include=*.py --include=*.md --include=Dockerfile)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(gh pr:*)",
+      "Bash(gh run:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(xargs grep:*)",
+      "Bash(wc:*)",
+      "Bash(grep -v \"^$\")",
+      "Bash(find /c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction -type f \\\\\\(-name *.png -o -name *.jpg -o -name *.jpeg -o -name *.svg -o -name *.ico -o -name *.gif \\\\\\))",
+      "WebFetch(domain:www.npmjs.com)",
+      "Bash(\"C:/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/demo/assets/logo.png\":*)"
     ]
   }
 }

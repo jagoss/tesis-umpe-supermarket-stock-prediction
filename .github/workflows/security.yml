@@ -1,10 +1,6 @@
 name: Security — Dependency Audit
 
 on:
-  push:
-    paths:
-      - "requirements.txt"
-      - "pyproject.toml"
   pull_request:
     paths:
       - "requirements.txt"
