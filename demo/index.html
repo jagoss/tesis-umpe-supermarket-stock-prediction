@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="onyx-api-key" content="${ONYX_WIDGET_API_KEY}">
+    <title>Predicción de Stock — Supermercados Ecuador</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+</head>
+<body>
+    <header class="header">
+        <div class="header__inner">
+            <img src="assets/logo.png"
+                 onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2748%27 height=%2748%27 viewBox=%270 0 48 48%27%3E%3Crect width=%2748%27 height=%2748%27 rx=%278%27 fill=%27%234F46E5%27/%3E%3Ctext x=%2724%27 y=%2732%27 text-anchor=%27middle%27 fill=%27white%27 font-size=%2720%27 font-family=%27sans-serif%27 font-weight=%27bold%27%3EU%3C/text%3E%3C/svg%3E'"
+                 alt="UMPE Logo" class="header__logo">
+            <div class="header__text">
+                <h1 class="header__title">Predicción de Stock</h1>
+                <p class="header__subtitle">Supermercados Ecuador</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="app-body">
+
+        <!-- ── Left sidebar: session history ── -->
+        <aside class="sidebar">
+            <div class="sidebar__header">
+                <span class="sidebar__title">Conversaciones</span>
+                <button class="sidebar__new" id="newChatBtn" title="Nueva conversación">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2.5"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="sidebar__list" id="sessionList">
+                <p class="sidebar__empty">Cargando...</p>
+            </div>
+        </aside>
+
+        <!-- ── Main workspace ── -->
+        <div class="workspace-wrap">
+            <section class="workspace">
+
+                <!-- Chat -->
+                <div class="chat" id="chat">
+                    <div class="chat__header">
+                        <span class="chat__header-dot"></span>
+                        <span class="chat__header-title">Asistente de Inventario</span>
+                    </div>
+                    <div class="chat__messages" id="chatMessages"></div>
+                    <div class="chat__status" id="chatStatus" hidden>
+                        <span class="chat__status-dots">
+                            <span></span><span></span><span></span>
+                        </span>
+                        <span class="chat__status-text" id="chatStatusText">Escribiendo...</span>
+                    </div>
+                    <form class="chat__input-bar" id="chatForm">
+                        <input
+                            type="text"
+                            class="chat__input"
+                            id="chatInput"
+                            placeholder="Escribe tu pregunta..."
+                            autocomplete="off"
+                            required
+                        />
+                        <button type="submit" class="chat__send" id="chatSend" aria-label="Enviar">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Visualization panel -->
+                <div class="viz-panel" id="vizPanel">
+                    <div class="viz-panel__header">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="20" x2="18" y2="10"></line>
+                            <line x1="12" y1="20" x2="12" y2="4"></line>
+                            <line x1="6" y1="20" x2="6" y2="14"></line>
+                        </svg>
+                        Predicciones
+                    </div>
+                    <div class="viz-panel__empty" id="vizEmpty">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="1.5"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="20" x2="18" y2="10"></line>
+                            <line x1="12" y1="20" x2="12" y2="4"></line>
+                            <line x1="6" y1="20" x2="6" y2="14"></line>
+                        </svg>
+                        <p>Las predicciones aparecerán aquí</p>
+                    </div>
+                    <div class="viz-panel__content" id="vizContent"></div>
+                </div>
+
+            </section>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>Trabajo de Titulación &mdash; Universidad Metropolitana del Ecuador (UMPE)</p>
+        <p class="footer__tech">Powered by Onyx &middot; ONNX Runtime &middot; FastAPI</p>
+    </footer>
+
+    <script src="assets/chat.js"></script>
+</body>
+</html>

@@ -4,6 +4,7 @@
 #   1. Copy .env.example to .env and fill in your values.
 #   2. docker compose up -d
 #
+# Demo page:      http://localhost:3003   (landing with embedded chat widget)
 # Onyx UI:        http://localhost:3000
 # Prediction API: http://localhost:8000
 # MCP endpoint:   http://localhost:8000/mcp  (or http://prediction-server.local:8000/mcp inside the network)
@@ -205,6 +206,22 @@ services:
       - app_network
     ports:
       - "3000:3000"
+    restart: unless-stopped
+
+  # ── Demo Web Page (landing with embedded Onyx chat widget) ──────────────────
+  demo_web:
+    build:
+      context: ./demo
+      dockerfile: Dockerfile
+    container_name: demo_web
+    environment:
+      - ONYX_WIDGET_API_KEY=${ONYX_WIDGET_API_KEY:-}
+    ports:
+      - "3003:80"
+    networks:
+      - app_network
+    depends_on:
+      - api_server
     restart: unless-stopped
 
 # ── Volumes ───────────────────────────────────────────────────────────────────
