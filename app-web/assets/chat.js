@@ -140,6 +140,9 @@ async function loadSessionHistory(sessionId) {
     const data = await res.json();
     const messages = data.messages ?? [];
 
+    let lastAssistantText = null;
+    let lastToolContent = null;
+
     messages.forEach((msg) => {
       const type = msg.message_type ?? msg.type;
       const text = msg.message ?? msg.content ?? msg.text ?? "";
@@ -151,12 +154,51 @@ async function loadSessionHistory(sessionId) {
         const bubble = appendAssistantBubble();
         setTextContent(bubble, text);
         if (msg.message_id != null) parentMessageId = msg.message_id;
+
+        // Track last assistant message for viz panel restoration
+        lastAssistantText = text;
+        // Onyx may include tool_content with structured results
+        if (msg.tool_content != null) lastToolContent = msg.tool_content;
+        if (msg.tool_calls != null) lastToolContent = msg.tool_calls;
       }
     });
+
+    // Restore viz panel from the last assistant message
+    restoreVizFromHistory(lastAssistantText, lastToolContent);
 
     scrollToBottom();
   } catch (err) {
     console.error("[chat] loadSessionHistory error:", err);
+  }
+}
+
+function restoreVizFromHistory(assistantText, toolContent) {
+  // Try structured tool_content first (Onyx may store tool results here)
+  if (toolContent) {
+    const results = Array.isArray(toolContent) ? toolContent : [toolContent];
+    for (const tc of results) {
+      const payload = tc.tool_result ?? tc.result ?? tc;
+      if (payload && typeof payload === "object") {
+        let rows = [];
+        if (Array.isArray(payload)) rows = payload;
+        else if (Array.isArray(payload.predictions)) rows = payload.predictions;
+        else {
+          const arr = Object.values(payload).find((v) => Array.isArray(v));
+          if (arr) rows = arr;
+        }
+        if (rows.length > 0) {
+          const vizContainer = document.createElement("div");
+          appendToVizPanel(vizContainer);
+          renderPredictionResult(rows, vizContainer);
+          return;
+        }
+      }
+    }
+  }
+
+  // Fallback: parse markdown tables from the assistant text
+  if (assistantText) {
+    renderMarkdownTables(assistantText);
   }
 }
 
