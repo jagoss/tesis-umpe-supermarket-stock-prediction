@@ -20,7 +20,7 @@ Esta lista consolida las figuras actualmente seleccionadas e integradas en la ba
 | `Figura 3` | [eda_03_regional_holidays.png](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/figures/eda/eda_03_regional_holidays.png) | [eda.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/eda.md) |
 | `Figura 4` | [eda_04_local_holidays.png](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/figures/eda/eda_04_local_holidays.png) | [eda.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/eda.md) |
 | `Figura 5` | [eda_05_calendar_patterns.png](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/figures/eda/eda_05_calendar_patterns.png) | [eda.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/eda.md) |
-| `Figura 6` | [architecture_01_current_system.svg](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/figures/architecture/architecture_01_current_system.svg) | [arquitectura_implementacion.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/arquitectura_implementacion.md) |
+| `Figura 6` | [architecture_01_current_system.png](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/figures/architecture/architecture_01_current_system.png) | [arquitectura_implementacion.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/arquitectura_implementacion.md) |
 
 ## Nota editorial
 
