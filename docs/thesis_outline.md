@@ -15,6 +15,45 @@ Objetivo: que no falte ninguna sección relevante al momento de redactar la tesi
 - `Opcional`: la guía la marca como opcional o condicional.
 - `Con evidencia suficiente`: el repositorio ya ofrece insumos directos para redactar.
 - `Con evidencia parcial`: hay insumos, pero faltan definiciones, resultados o referencias para cerrar la redacción.
+- `Sólido`: ya existe base documental suficiente y, en algunos casos, borrador inicial utilizable.
+- `Parcial`: existe base documental útil, pero hay vacíos que impedirían cerrar una versión final sin trabajo adicional.
+- `Pendiente`: la sección está identificada en la estructura, pero todavía no cuenta con base suficiente o no se ha consolidado su soporte documental.
+- La numeración global vigente del manuscrito quedó consolidada en [MANUSCRIPT_NUMBERING.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/MANUSCRIPT_NUMBERING.md).
+
+## 0.1 Estado documental actual por sección
+
+| Sección | Estado documental | Base actual | Bloqueo principal |
+|---|---|---|---|
+| `1.1 Portada` | Pendiente | Solo pauta institucional | Faltan datos formales finales de presentación |
+| `1.2 Página de aprobación` | Pendiente | Solo guía institucional | Depende de formato y aprobación institucional |
+| `1.3 Fe de erratas` | Pendiente | Solo guía institucional | Se activa solo si corresponde al cierre |
+| `1.4 Descargo de responsabilidad` | Pendiente | Solo guía institucional | Falta redacción formal institucional |
+| `1.5 Dedicatoria y agradecimientos` | Pendiente | No técnica | Depende de decisión editorial final |
+| `1.6 Cláusula de confidencialidad` | Pendiente | No parece necesaria por datos públicos | Confirmar si aplica institucionalmente |
+| `1.7 Tabla de contenido o índice` | Parcial | Estructura ya definida | Se consolida al cierre del manuscrito |
+| `1.8 Lista de tablas` | Parcial | Ya existe [LISTA_DE_TABLAS.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/LISTA_DE_TABLAS.md) con la tabla actualmente integrada en el manuscrito | Debe ampliarse si luego se incorporan nuevas tablas al cuerpo de la tesis |
+| `1.9 Lista de figuras` | Parcial | Ya existe [LISTA_DE_FIGURAS.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/LISTA_DE_FIGURAS.md) con `Figura 1` a `Figura 6` | Falta completar con figuras de resultados si luego se incorporan al manuscrito |
+| `1.10 Lista de abreviaturas y siglas` | Parcial | Ya existe [ABREVIATURAS_SIGLAS.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/ABREVIATURAS_SIGLAS.md) con siglas usadas en el manuscrito | Conviene revisarla al cierre por si ingresan nuevas siglas o cambia el criterio editorial |
+| `1.11 Lista de símbolos` | Pendiente | No requerida aún | Depende de nivel de formalización matemática |
+| `1.12 Glosario` | Parcial | Ya existe [GLOSARIO_MINIMO.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/GLOSARIO_MINIMO.md) con términos operativos del manuscrito | Puede requerir ampliación si el documento final incorpora conceptos nuevos o mayor formalización |
+| `1.13 Resumen` | Parcial | Ya existe [resumen.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/resumen.md) con síntesis del problema, método, resultados parciales y limitaciones | Sigue condicionado por el cierre experimental incompleto del modelo principal |
+| `1.14 Palabras clave` | Parcial | Ya existe [PALABRAS_CLAVE.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/PALABRAS_CLAVE.md) y [resumen.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/resumen.md) ya incluye una propuesta | Conviene validar la lista final cuando quede cerrada la terminología dominante del manuscrito |
+| `2.1 Introducción` | Parcial | Ya existe [introduccion.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/introduccion.md) | Hipótesis y objetivos aún inferidos |
+| `2.2.1 Contexto del problema y caso de negocio` | Parcial | Base documental suficiente | Falta convertir el valor operativo esperado en criterios o indicadores de negocio más formales |
+| `2.2.2 Conceptos teóricos y estado del arte` | Parcial | Ya existen [estado_arte_conceptos.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/estado_arte_conceptos.md), [BIBLIOGRAPHY_SEED.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/BIBLIOGRAPHY_SEED.md), [LITERATURE_MATRIX.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/LITERATURE_MATRIX.md), [references_seed.bib](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/references_seed.bib) y [CITATION_STYLE.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/CITATION_STYLE.md) | Falta ampliar comparacion sistematica con literatura previa y cubrir mejor inventarios/reposicion |
+| `2.2.3 Metodología` | Parcial | Ya existe [metodologia.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/metodologia.md) | Faltan justificaciones metodológicas más fuertes en algunos puntos |
+| `2.2.4 Análisis exploratorio de datos (EDA)` | Sólido | Ya existe [eda.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/eda.md), con cinco figuras exportadas, numeradas e integradas en el cuerpo base del capítulo | Solo resta ajustar numeración final y referencias cruzadas cuando se consolide el manuscrito completo; la segmentación adicional es opcional |
+| `2.2.5 Arquitectura e implementación del sistema` | Sólido | Ya existe [arquitectura_implementacion.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/arquitectura_implementacion.md), junto con una figura de arquitectura vigente exportada | Conviene seguir separando documentación legacy de arquitectura actual y decidir si se añadirá un diagrama interno más detallado |
+| `2.2.6 Experimentos` | Parcial | Ya existe [experimentos.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/experimentos.md) con protocolo experimental, baselines trazables, `RMSLE` visible de `LightGBM`, evidencia de ejecución y artefacto `submission.csv` | Falta cerrar comparación equivalente contra baselines con `MAE`, `RMSE` y/o un `cv_results_lgbm` exportado; el alcance documentado hoy tampoco es completamente homogéneo entre baseline y modelo principal |
+| `2.2.7 Validación técnica y reproducibilidad` | Sólido | Ya existe [validacion_reproducibilidad.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/validacion_reproducibilidad.md) y la evidencia técnica está trazada en tests, CI, smoke tests y guías E2E | No hay corrida local reejecutada en este entorno y falta evidencia archivada de una corrida productiva completa con Onyx |
+| `2.3 Conclusiones` | Parcial | Ya existe [conclusiones.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/conclusiones.md) con síntesis prudente de hallazgos, limitaciones y trabajo futuro | Sigue condicionada por el cierre experimental incompleto del modelo principal |
+| `3.1 Referencias bibliográficas` | Parcial | Ya existe [references_seed.bib](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/references_seed.bib) y [BIBLIOGRAPHY_SEED.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/BIBLIOGRAPHY_SEED.md) | Falta definir set final efectivamente citado y revisar estilo institucional |
+| `3.2 Bibliografía consultada` | Parcial | Ya existen [BIBLIOGRAPHY_SEED.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/BIBLIOGRAPHY_SEED.md) y [LITERATURE_MATRIX.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/LITERATURE_MATRIX.md) | Falta decidir si la institución exige separación entre consultada y citada |
+| `3.3 Estilo de citas y referencias` | Parcial | Ya existe [CITATION_STYLE.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/CITATION_STYLE.md) con convención autor-año y reglas operativas para Markdown y BibTeX | Falta validar si la dirección o la unidad académica exige un estilo distinto en la versión final maquetada |
+| `4.1 Anexos` | Parcial | Ya existen [LISTA_DE_ANEXOS.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/LISTA_DE_ANEXOS.md) y [anexo_reproducibilidad_operativa.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/anexo_reproducibilidad_operativa.md) como base concreta | Falta decidir qué anexos candidatos entrarán efectivamente y fijar la numeración final |
+| `4.2 Repositorio de soporte` | Sólido | El repositorio ya cumple este rol | Requiere solo referencia ordenada desde el manuscrito |
+| `5. Orden de redacción recomendado` | Parcial | Existe propuesta funcional | Debe actualizarse cuando se destraben resultados |
+| `6. Riesgos de completitud todavía abiertos` | Parcial | Riesgos ya identificados | Requiere sincronización periódica con el estado documental real |
 
 ## 1. Elementos preliminares
 
@@ -77,6 +116,10 @@ Objetivo: que no falte ninguna sección relevante al momento de redactar la tesi
   `Guía Elaboración Tesinas (1).pdf`.
 - Recomendación:
   probablemente convenga incluirla si se formalizan tablas de métricas, features y artefactos.
+- Base actual:
+  [LISTA_DE_TABLAS.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/LISTA_DE_TABLAS.md).
+- Vacío:
+  hoy solo hay una tabla integrada en el cuerpo principal; la lista deberá crecer si se agregan tablas metodológicas, de resultados o de anexos.
 
 ### 1.9 Lista de figuras
 
@@ -93,6 +136,10 @@ Objetivo: que no falte ninguna sección relevante al momento de redactar la tesi
   `Guía Elaboración Tesinas (1).pdf`.
 - Recomendación:
   útil por la cantidad de términos técnicos (`ONNX`, `MCP`, `EDA`, `MLForecast`, `API`, `CI/CD`).
+- Base actual:
+  [ABREVIATURAS_SIGLAS.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/ABREVIATURAS_SIGLAS.md).
+- Vacío:
+  revisar al cierre si ingresan nuevas siglas o si la maquetación final exige otro criterio de presentación.
 
 ### 1.11 Lista de símbolos
 
@@ -109,6 +156,10 @@ Objetivo: que no falte ninguna sección relevante al momento de redactar la tesi
   `Guía Elaboración Tesinas (1).pdf`.
 - Recomendación:
   puede ayudar si se desea distinguir terminología de negocio y de modelado.
+- Base actual:
+  [GLOSARIO_MINIMO.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/GLOSARIO_MINIMO.md).
+- Vacío:
+  sigue siendo un glosario mínimo; puede requerir ampliación si crece el aparato conceptual del manuscrito.
 
 ### 1.13 Resumen
 
@@ -120,15 +171,19 @@ Objetivo: que no falte ninguna sección relevante al momento de redactar la tesi
 - Evidencia disponible:
   parcial.
 - Insumos del repo:
-  [README.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/README.md), [RESULTS_SUMMARY.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/RESULTS_SUMMARY.md), [EVIDENCE_MAP.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/EVIDENCE_MAP.md).
+  [resumen.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/resumen.md), [README.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/README.md), [RESULTS_SUMMARY.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/RESULTS_SUMMARY.md), [EVIDENCE_MAP.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/EVIDENCE_MAP.md).
 - Vacío:
-  falta una métrica final completamente trazable del modelo principal.
+  el texto ya existe, pero sigue condicionado por la falta de un artefacto final completamente homogéneo y trazable del modelo principal.
 
 ### 1.14 Palabras clave
 
 - Estado: obligatoria.
 - Fuente normativa:
   `Pautas para tesis - MCD24.docx`, `Guía Elaboración Tesinas (1).pdf`.
+- Base actual:
+  [PALABRAS_CLAVE.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/PALABRAS_CLAVE.md), [resumen.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/resumen.md).
+- Vacío:
+  validar al cierre si conviene mantener la lista principal o la variante breve según el formato final exigido.
 
 ## 2. Cuerpo del trabajo
 
@@ -168,9 +223,9 @@ Objetivo: que no falte ninguna sección relevante al momento de redactar la tesi
 - Evidencia:
   parcial.
 - Fuentes:
-  [precompute_features_pipeline.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/.docs/precompute_features_pipeline.md), [data_serving_architecture.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/.docs/data_serving_architecture.md), [onyx_integration.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/.docs/onyx_integration.md).
+  [estado_arte_conceptos.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/estado_arte_conceptos.md), [BIBLIOGRAPHY_SEED.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/BIBLIOGRAPHY_SEED.md), [LITERATURE_MATRIX.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/LITERATURE_MATRIX.md), [references_seed.bib](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/references_seed.bib), [precompute_features_pipeline.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/.docs/precompute_features_pipeline.md), [data_serving_architecture.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/.docs/data_serving_architecture.md), [onyx_integration.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/.docs/onyx_integration.md), [introduccion.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/introduccion.md), [metodologia.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/metodologia.md), [arquitectura_implementacion.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/arquitectura_implementacion.md).
 - Vacío:
-  falta bibliografía académica consolidada y citas formalmente integradas.
+  ya existe una base bibliográfica mínima con citas integradas en el capítulo, pero falta ampliar la comparación sistemática con literatura previa y cubrir mejor inventarios/reposición.
 
 #### 2.2.3 Metodología
 
@@ -195,11 +250,11 @@ Objetivo: que no falte ninguna sección relevante al momento de redactar la tesi
 - Contenido:
   datos disponibles, descripción estadística inicial, hallazgos exploratorios y soporte visual.
 - Evidencia:
-  parcial.
+  suficiente.
 - Fuentes:
-  notebook académico, [NOTEBOOKS.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/NOTEBOOKS.md).
+  notebook académico, notebook exploratorio, [NOTEBOOKS.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/NOTEBOOKS.md), [eda_01_sales_covariates.png](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/figures/eda/eda_01_sales_covariates.png), [eda_02_national_holidays.png](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/figures/eda/eda_02_national_holidays.png), [eda_03_regional_holidays.png](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/figures/eda/eda_03_regional_holidays.png), [eda_04_local_holidays.png](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/figures/eda/eda_04_local_holidays.png), [eda_05_calendar_patterns.png](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/figures/eda/eda_05_calendar_patterns.png).
 - Vacío:
-  no hay figuras EDA exportadas; habrá que construirlas a partir de notebooks o volver a ejecutarlos.
+  la base visual ya está integrada; solo resta ajustar la numeración y las referencias cruzadas definitivas cuando se cierre el manuscrito completo. La segmentación adicional por tienda o familia queda como mejora opcional, no como bloqueo.
 
 #### 2.2.5 Arquitectura e implementación del sistema
 
@@ -210,7 +265,9 @@ Objetivo: que no falte ninguna sección relevante al momento de redactar la tesi
 - Evidencia:
   suficiente.
 - Fuentes:
-  [README.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/README.md), [api.py](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/server/interface/http/api.py), [docker-compose.yml](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docker-compose.yml), [Dockerfile](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/Dockerfile), [ONNX_INTEGRATION_SUMMARY.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/ONNX_INTEGRATION_SUMMARY.md).
+  [arquitectura_implementacion.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/arquitectura_implementacion.md), [architecture_01_current_system.svg](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/figures/architecture/architecture_01_current_system.svg), [README.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/README.md), [api.py](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/server/interface/http/api.py), [docker-compose.yml](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docker-compose.yml), [Dockerfile](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/Dockerfile), [ONNX_INTEGRATION_SUMMARY.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/ONNX_INTEGRATION_SUMMARY.md), [.docs/onyx_integration.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/.docs/onyx_integration.md), [.docs/data_serving_architecture.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/.docs/data_serving_architecture.md).
+- Vacío:
+  la base visual ya existe; resta decidir si se incorporará además un diagrama complementario más detallado del pipeline interno.
 
 #### 2.2.6 Experimentos
 
@@ -220,9 +277,9 @@ Objetivo: que no falte ninguna sección relevante al momento de redactar la tesi
 - Evidencia:
   parcial.
 - Fuentes:
-  notebook académico, [RESULTS_SUMMARY.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/RESULTS_SUMMARY.md), [cv_results_baseline_retrained.csv](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/.notebooks/cv_results_baseline_retrained.csv), [submission.csv](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/.notebooks/submission.csv).
+  notebook académico, [RESULTS_SUMMARY.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/RESULTS_SUMMARY.md), [LGBM_CV_EVIDENCE.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/LGBM_CV_EVIDENCE.md), [cv_results_baseline_retrained.csv](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/.notebooks/cv_results_baseline_retrained.csv), [submission.csv](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/.notebooks/submission.csv).
 - Vacío:
-  la métrica final del modelo LGBM principal sigue sin quedar completamente trazable en el estado actual del repositorio.
+  el `RMSLE` de LGBM ya queda visible, pero faltan `MAE`, `RMSE` y una tabla de CV exportada para comparación equivalente contra baselines; además, la comparación hoy documentada no está cerrada sobre exactamente el mismo conjunto de series.
 
 #### 2.2.7 Validación técnica y reproducibilidad
 
@@ -233,7 +290,9 @@ Objetivo: que no falte ninguna sección relevante al momento de redactar la tesi
 - Evidencia:
   suficiente.
 - Fuentes:
-  [server/tests](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/server/tests), [test.yml](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/.github/workflows/test.yml), [e2e_validation.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/.docs/e2e_validation.md), [EVIDENCE_MAP.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/EVIDENCE_MAP.md).
+  [validacion_reproducibilidad.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/validacion_reproducibilidad.md), [server/tests](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/server/tests), [test.yml](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/.github/workflows/test.yml), [container-smoke-test.yml](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/.github/workflows/container-smoke-test.yml), [e2e_validation.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/.docs/e2e_validation.md), [e2e_validate.sh](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/scripts/e2e_validate.sh), [containers.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/.docs/containers.md), [.env.example](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/.env.example), [pyproject.toml](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/pyproject.toml), [EVIDENCE_MAP.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/EVIDENCE_MAP.md).
+- Vacío:
+  falta una corrida local reejecutada en este workspace y una evidencia archivada de validación productiva completa con Onyx.
 
 ### 2.3 Conclusiones
 
@@ -254,16 +313,20 @@ Objetivo: que no falte ninguna sección relevante al momento de redactar la tesi
 - Estado: obligatoria según la guía general.
 - Fuente normativa:
   `Guía Elaboración Tesinas (1).pdf`.
+- Base actual:
+  [references_seed.bib](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/references_seed.bib), [BIBLIOGRAPHY_SEED.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/BIBLIOGRAPHY_SEED.md).
 - Vacío:
-  todavía no existe un archivo bibliográfico consolidado dentro del repo.
+  el archivo existente es semilla; falta decidir el subconjunto final efectivamente citado y adecuarlo al estilo institucional.
 
 ### 3.2 Bibliografía consultada
 
 - Estado: contemplada en la guía general.
 - Observación:
   puede mantenerse separada de las referencias efectivamente citadas si la institución lo exige.
+- Base actual:
+  [BIBLIOGRAPHY_SEED.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/BIBLIOGRAPHY_SEED.md), [LITERATURE_MATRIX.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/LITERATURE_MATRIX.md).
 - Vacío:
-  aún no está armada.
+  falta decidir si se presentará separada de las referencias citadas y ampliar cobertura hacia inventarios y métricas de forecast orientadas a negocio.
 
 ### 3.3 Estilo de citas y referencias
 
@@ -271,8 +334,10 @@ Objetivo: que no falte ninguna sección relevante al momento de redactar la tesi
   debe alinearse con el estilo aprobado por la unidad académica.
 - Fuente normativa:
   `Guía Elaboración Tesinas (1).pdf`.
+- Base actual:
+  [CITATION_STYLE.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/CITATION_STYLE.md), [references_seed.bib](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/references_seed.bib).
 - Vacío:
-  en el material actual no está definido el estilo final a aplicar en Markdown.
+  la convención ya está fijada para el manuscrito en Markdown, pero resta confirmar si la versión final institucional exigirá un estilo específico distinto.
 
 ## 4. Material complementario
 
@@ -287,7 +352,11 @@ Objetivo: que no falte ninguna sección relevante al momento de redactar la tesi
   - diagramas de arquitectura;
   - detalles de configuración docker y variables de entorno.
 - Fuentes:
-  [schemas.py](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/server/interface/http/schemas.py), [precompute_features.py](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/scripts/precompute_features.py), [arquitectura_proyecto.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/.docs/arquitectura_proyecto.md), [data_serving_architecture.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/.docs/data_serving_architecture.md), [precompute_features_pipeline.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/.docs/precompute_features_pipeline.md).
+  [LISTA_DE_ANEXOS.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/LISTA_DE_ANEXOS.md), [anexo_reproducibilidad_operativa.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/anexo_reproducibilidad_operativa.md), [schemas.py](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/server/interface/http/schemas.py), [precompute_features.py](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/scripts/precompute_features.py), [data_serving_architecture.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/.docs/data_serving_architecture.md), [precompute_features_pipeline.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/.docs/precompute_features_pipeline.md), [validacion_reproducibilidad.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/validacion_reproducibilidad.md), [NOTEBOOKS.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/NOTEBOOKS.md), [RESULTS_SUMMARY.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/RESULTS_SUMMARY.md), [LGBM_CV_EVIDENCE.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/LGBM_CV_EVIDENCE.md).
+- Base actual:
+  [LISTA_DE_ANEXOS.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docs/LISTA_DE_ANEXOS.md).
+- Vacío:
+  ya existe una lista base, pero falta decidir qué anexos candidatos entrarán efectivamente y fijar la numeración final del manuscrito.
 
 ### 4.2 Repositorio de soporte
 
@@ -310,7 +379,6 @@ Objetivo: que no falte ninguna sección relevante al momento de redactar la tesi
 ## 6. Riesgos de completitud todavía abiertos
 
 1. Falta consolidar bibliografía formal y sistema de citas.
-2. Falta decidir si la hipótesis quedará formulada explícitamente o si se trabajará con objetivos y pregunta de investigación.
+2. Falta traducir la formulación ya cerrada de pregunta, objetivos e hipótesis en criterios de valor de negocio más operativos.
 3. Falta confirmar si se incluirán todos los preliminares institucionales en Markdown o si algunos se incorporarán recién en la versión final maquetada.
 4. Falta cerrar la trazabilidad cuantitativa del modelo principal para que la sección de experimentos no dependa de inferencias.
-

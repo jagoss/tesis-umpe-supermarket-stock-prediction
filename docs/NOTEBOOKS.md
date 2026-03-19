@@ -74,3 +74,45 @@ Fuentes (celdas):
 Implicancia:
 - No aporta evidencia adicional para resultados/modelado en el estado actual.
 
+## 4) `.notebooks/analisis_exploratorio_ecuador_sales_forecast.ipynb`
+
+- Objetivo:
+  Desarrollar un EDA específico del problema de ventas en supermercados de Ecuador, con énfasis en completitud temporal, ceros estructurales, promociones, transacciones, petróleo, feriados y variables de calendario.
+- Inputs principales:
+  `data/train.csv`, `data/test.csv`, `data/oil.csv`, `data/stores.csv`, `data/transactions.csv`, `data/holidays_events.csv`.
+- Outputs principales:
+  Tablas impresas de cobertura y faltantes, tablas de holidays procesados, visualizaciones embebidas de correlación/boxplots/series temporales.
+- Metricas o graficos relevantes:
+  - `Number of target series: 1782`.
+  - Fechas faltantes en el panel crudo: `2013-12-25`, `2014-12-25`, `2015-12-25`, `2016-12-25`.
+  - `Number of missing oil dates: 486`, todas en fines de semana.
+  - `transactions`: 91.152 registros esperados, 83.488 observados, 7.546 ausencias asociadas a cero ventas y 118 faltantes adicionales.
+  - Gráficos de asociación visual entre ventas promedio, promociones, transacciones y petróleo.
+  - Boxplots de feriados nacionales, regionales y locales.
+  - Gráficos de patrones por `day`, `month`, `year`, `day_of_week`, `day_of_year`, `week_of_year`.
+- Clasificacion:
+  Exploratorio/documental, con valor directo para la sección EDA de la tesis.
+- Problemas de reproducibilidad detectados:
+  - Varias conclusiones están en markdown interpretativo y no siempre acompañadas de tablas exportadas.
+  - Las figuras existen solo como outputs embebidos del notebook, no como archivos PNG/SVG versionados.
+  - Mezcla decisiones de preprocesamiento con EDA, lo que exige lectura cuidadosa para separar descripción de transformación.
+- Secciones de tesis que puede alimentar:
+  EDA, Metodología (preparación de datos auxiliares), Justificación de variables de calendario y feriados, Limitaciones de datos.
+
+## 5) `.notebooks/analisis_exploratorio_ecuador_sales_forecast_academic.ipynb`
+
+- Objetivo:
+  Versión académicamente estructurada del notebook exploratorio anterior, enriquecida con abstract, introducción, contexto metodológico por sección y conclusiones.
+- Inputs principales:
+  Los mismos que el notebook exploratorio original.
+- Outputs principales:
+  Conserva outputs del notebook original y agrega celdas markdown formales para facilitar su reutilización documental.
+- Metricas o graficos relevantes:
+  Hereda los del notebook base; no añade métricas nuevas.
+- Clasificacion:
+  Documental/tesis.
+- Problemas de reproducibilidad detectados:
+  - Comparte las limitaciones de ejecución y exportación visual del notebook base.
+  - Mejora la estructura argumental, pero no reemplaza la necesidad de figuras exportadas si se desean insertar directamente en el manuscrito.
+- Secciones de tesis que puede alimentar:
+  EDA, Metodología descriptiva, Apéndice documental.
