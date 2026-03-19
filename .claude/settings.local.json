@@ -41,7 +41,18 @@
       "Bash(grep -v \"^$\")",
       "Bash(find /c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction -type f \\\\\\(-name *.png -o -name *.jpg -o -name *.jpeg -o -name *.svg -o -name *.ico -o -name *.gif \\\\\\))",
       "WebFetch(domain:www.npmjs.com)",
-      "Bash(\"C:/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/demo/assets/logo.png\":*)"
+      "Bash(\"C:/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/demo/assets/logo.png\":*)",
+      "Bash(git -C \"/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction\" log --oneline demo/)",
+      "Bash(grep -r demo C:UsersjuanaPycharmProjectstesis-umpe-supermarket-stock-prediction --include=*.yml --include=*.yaml --include=*.md --include=*.sh --include=*.json --include=Makefile* --include=Dockerfile* --exclude-dir=.venv --exclude-dir=.git --exclude-dir=__pycache__ -n)",
+      "Bash(python -c \":*)",
+      "mcp__Desktop_Commander__list_directory",
+      "mcp__Desktop_Commander__read_file",
+      "Bash(git checkout:*)",
+      "Bash(git mv:*)",
+      "Bash(git apply:*)",
+      "Bash(git stash:*)",
+      "Bash(find /c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction -type f \\\\\\(-name *.md -o -name *.txt -o -name *.rst -o -name docker-compose.yml -o -name *.yaml -o -name *.yml \\\\\\))",
+      "Bash(grep -r demo /c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction --include=*.md --include=*.yml --include=*.yaml --include=*.txt -n)"
     ]
   }
 }
