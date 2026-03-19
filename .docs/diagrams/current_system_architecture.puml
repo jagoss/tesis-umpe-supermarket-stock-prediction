@@ -1,0 +1,80 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam defaultFontName Arial
+skinparam ArrowColor #334155
+skinparam packageBorderColor #64748b
+skinparam packageBackgroundColor #f8fafc
+skinparam rectangleBorderColor #475569
+skinparam rectangleBackgroundColor #ffffff
+
+actor "Usuario" as User
+
+package "Stack Onyx" as Onyx {
+  rectangle "Web UI\n(web_server:3000)" as UI
+  rectangle "Onyx API / Tool Router\n(api_server)" as OnyxAPI
+  rectangle "LLM + memoria\n(orquestación conversacional)" as LLM
+}
+
+package "Prediction Server" as Server {
+  package "Interface" {
+    rectangle "FastAPI\n/health  /predict  /mcp\nCORS, API key, timeout, rate limiting, metrics" as API
+  }
+  package "Application" {
+    rectangle "PredictStockUseCase\nvalida -> preprocess -> predict -> postprocess" as UC
+    interface "PreprocessorPort" as PPort
+    interface "ModelPort" as MPort
+    interface "PostprocessorPort" as PoPort
+    interface "DataRepositoryPort" as DPort
+  }
+  package "Infrastructure" {
+    rectangle "ProductionPreprocessor" as Pre
+    rectangle "ONNXModel" as Model
+    rectangle "ProductionPostprocessor" as Post
+    rectangle "ParquetDataRepository" as Repo
+    rectangle "DummyModel / Basic adapters\n(compatibilidad para pruebas)" as Dummy
+  }
+  package "Domain" {
+    rectangle "StockForecast\nStockForecastPoint\nDomainError hierarchy" as Domain
+  }
+}
+
+package "Artefactos de inferencia" as Artifacts {
+  rectangle "lightgbm_model.onnx" as OnnxFile
+  rectangle "precomputed_features.parquet" as Features
+  rectangle "scaler_params.parquet" as Scaler
+}
+
+package "Validación técnica" as QA {
+  rectangle "pytest + coverage\nserver/tests/*" as Tests
+  rectangle "GitHub Actions\ncontainer smoke test" as CI
+}
+
+User --> UI : consulta
+UI --> OnyxAPI : mensaje
+OnyxAPI --> LLM : interpreta / decide tool
+OnyxAPI --> API : MCP /predict_stock
+API --> UC : DTOs HTTP -> aplicación
+UC --> PPort
+UC --> MPort
+UC --> PoPort
+PoPort --> Domain
+Pre ..|> PPort
+Model ..|> MPort
+Post ..|> PoPort
+Repo ..|> DPort
+Pre --> DPort : lookup de features
+Post --> DPort : lookup mean/std
+Model --> OnnxFile : carga artefacto
+Repo --> Features : carga filas precomputadas
+Repo --> Scaler : carga parámetros
+CI --> API : /health /docs /openapi.json /predict
+Tests --> API : HTTP + MCP
+Tests --> UC : unit/integration
+Dummy --> API : modo dummy/basic
+API --> OnyxAPI : respuesta MCP
+OnyxAPI --> UI : respuesta redactada
+UI --> User : respuesta final
+@enduml

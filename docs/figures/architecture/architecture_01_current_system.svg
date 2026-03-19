@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="980" viewBox="0 0 1400 980" role="img" aria-labelledby="title desc">
+  <title id="title">Arquitectura vigente del sistema de predicción e integración con Onyx</title>
+  <desc id="desc">Diagrama del flujo Usuario a Onyx, servidor de predicción, artefactos ONNX y Parquet, y controles técnicos.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#334155" />
+    </marker>
+    <style>
+      .title { font: 700 28px Arial, sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 14px Arial, sans-serif; fill: #334155; }
+      .group { fill: #f8fafc; stroke: #64748b; stroke-width: 2; rx: 18; ry: 18; }
+      .box { fill: #ffffff; stroke: #475569; stroke-width: 2; rx: 14; ry: 14; }
+      .soft { fill: #eff6ff; stroke: #3b82f6; stroke-width: 2; rx: 14; ry: 14; }
+      .data { fill: #ecfeff; stroke: #0891b2; stroke-width: 2; rx: 14; ry: 14; }
+      .ops { fill: #f0fdf4; stroke: #16a34a; stroke-width: 2; rx: 14; ry: 14; }
+      .legacy { fill: #fff7ed; stroke: #ea580c; stroke-width: 2; rx: 14; ry: 14; }
+      .label { font: 700 18px Arial, sans-serif; fill: #0f172a; }
+      .text { font: 14px Arial, sans-serif; fill: #1e293b; }
+      .small { font: 12px Arial, sans-serif; fill: #475569; }
+      .arrow { stroke: #334155; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .dashed { stroke-dasharray: 8 6; }
+    </style>
+  </defs>
+
+  <text x="700" y="42" text-anchor="middle" class="title">Arquitectura vigente del sistema de predicción e integración con Onyx</text>
+  <text x="700" y="68" text-anchor="middle" class="subtitle">Basado en el código actual del repositorio: FastAPI + MCP + ONNX Runtime + Parquet + Onyx</text>
+
+  <rect x="60" y="120" width="250" height="170" class="group" />
+  <text x="185" y="150" text-anchor="middle" class="label">Usuario</text>
+  <circle cx="185" cy="190" r="28" fill="#ffffff" stroke="#475569" stroke-width="2" />
+  <line x1="185" y1="218" x2="185" y2="250" stroke="#475569" stroke-width="2" />
+  <line x1="160" y1="232" x2="210" y2="232" stroke="#475569" stroke-width="2" />
+  <line x1="185" y1="250" x2="162" y2="280" stroke="#475569" stroke-width="2" />
+  <line x1="185" y1="250" x2="208" y2="280" stroke="#475569" stroke-width="2" />
+  <text x="185" y="312" text-anchor="middle" class="text">Consulta de demanda / stock</text>
+
+  <rect x="360" y="110" width="300" height="310" class="group" />
+  <text x="510" y="140" text-anchor="middle" class="label">Stack Onyx</text>
+  <rect x="390" y="165" width="240" height="65" class="soft" />
+  <text x="510" y="192" text-anchor="middle" class="label" style="font-size:16px;">Web UI</text>
+  <text x="510" y="214" text-anchor="middle" class="text">`web_server:3000`</text>
+  <rect x="390" y="245" width="240" height="75" class="soft" />
+  <text x="510" y="272" text-anchor="middle" class="label" style="font-size:16px;">Onyx API / Tool Router</text>
+  <text x="510" y="295" text-anchor="middle" class="text">Invoca tools MCP desde `api_server`</text>
+  <rect x="390" y="335" width="240" height="55" class="soft" />
+  <text x="510" y="362" text-anchor="middle" class="label" style="font-size:16px;">LLM + memoria</text>
+  <text x="510" y="382" text-anchor="middle" class="small">orquestación conversacional</text>
+
+  <rect x="710" y="100" width="520" height="620" class="group" />
+  <text x="970" y="132" text-anchor="middle" class="label">Prediction Server</text>
+  <text x="970" y="154" text-anchor="middle" class="small">Clean Architecture con exposición REST y MCP</text>
+
+  <rect x="740" y="180" width="460" height="90" class="soft" />
+  <text x="970" y="208" text-anchor="middle" class="label" style="font-size:17px;">Interface</text>
+  <text x="970" y="232" text-anchor="middle" class="text">FastAPI: `/health`, `/predict`, `/mcp`</text>
+  <text x="970" y="252" text-anchor="middle" class="small">CORS, API key, timeout, rate limiting y métricas Prometheus</text>
+
+  <rect x="740" y="295" width="460" height="105" class="box" />
+  <text x="970" y="325" text-anchor="middle" class="label" style="font-size:17px;">Application</text>
+  <text x="970" y="350" text-anchor="middle" class="text">`PredictStockUseCase`</text>
+  <text x="970" y="373" text-anchor="middle" class="small">valida fechas → preprocess → predict → postprocess → DTO</text>
+
+  <rect x="740" y="425" width="215" height="130" class="box" />
+  <text x="847.5" y="453" text-anchor="middle" class="label" style="font-size:16px;">Infrastructure</text>
+  <text x="847.5" y="478" text-anchor="middle" class="text">`ProductionPreprocessor`</text>
+  <text x="847.5" y="500" text-anchor="middle" class="text">`ONNXModel`</text>
+  <text x="847.5" y="522" text-anchor="middle" class="text">`ProductionPostprocessor`</text>
+
+  <rect x="985" y="425" width="215" height="130" class="data" />
+  <text x="1092.5" y="453" text-anchor="middle" class="label" style="font-size:16px;">Data Repository</text>
+  <text x="1092.5" y="478" text-anchor="middle" class="text">`ParquetDataRepository`</text>
+  <text x="1092.5" y="500" text-anchor="middle" class="small">lookup O(1) por</text>
+  <text x="1092.5" y="519" text-anchor="middle" class="small">(store, family, date)</text>
+
+  <rect x="740" y="580" width="460" height="85" class="ops" />
+  <text x="970" y="608" text-anchor="middle" class="label" style="font-size:17px;">Domain</text>
+  <text x="970" y="632" text-anchor="middle" class="text">`StockForecast`, `StockForecastPoint`, `DomainError` hierarchy</text>
+
+  <rect x="1260" y="160" width="110" height="220" class="data" />
+  <text x="1315" y="188" text-anchor="middle" class="label" style="font-size:15px;">Artefactos</text>
+  <rect x="1275" y="210" width="80" height="46" class="box" />
+  <text x="1315" y="238" text-anchor="middle" class="small">`lightgbm_`</text>
+  <text x="1315" y="252" text-anchor="middle" class="small">`model.onnx`</text>
+  <rect x="1275" y="270" width="80" height="46" class="box" />
+  <text x="1315" y="295" text-anchor="middle" class="small">`precomputed_`</text>
+  <text x="1315" y="309" text-anchor="middle" class="small">`features.parquet`</text>
+  <rect x="1275" y="330" width="80" height="36" class="box" />
+  <text x="1315" y="352" text-anchor="middle" class="small">`scaler_`</text>
+  <text x="1315" y="365" text-anchor="middle" class="small">`params.parquet`</text>
+
+  <rect x="360" y="500" width="300" height="165" class="ops" />
+  <text x="510" y="530" text-anchor="middle" class="label">Controles técnicos</text>
+  <rect x="390" y="555" width="240" height="42" class="box" />
+  <text x="510" y="581" text-anchor="middle" class="text">`pytest` + cobertura sobre `server/tests/`</text>
+  <rect x="390" y="610" width="240" height="42" class="box" />
+  <text x="510" y="636" text-anchor="middle" class="text">GitHub Actions: `container-smoke-test.yml`</text>
+
+  <rect x="60" y="500" width="250" height="120" class="legacy" />
+  <text x="185" y="530" text-anchor="middle" class="label">Advertencia documental</text>
+  <text x="185" y="555" text-anchor="middle" class="text">`arquitectura_proyecto.md`</text>
+  <text x="185" y="577" text-anchor="middle" class="small">describe una arquitectura conversacional previa</text>
+  <text x="185" y="596" text-anchor="middle" class="small">y no debe usarse como fuente primaria</text>
+
+  <path d="M 310 205 L 360 205" class="arrow" />
+  <path d="M 660 205 L 740 225" class="arrow" />
+  <path d="M 510 320 L 510 335" class="arrow" />
+  <path d="M 970 270 L 970 295" class="arrow" />
+  <path d="M 970 400 L 970 425" class="arrow" />
+  <path d="M 847 555 L 847 580" class="arrow" />
+  <path d="M 1092 555 L 1092 580" class="arrow" />
+  <path d="M 1200 470 L 1260 240" class="arrow dashed" />
+  <path d="M 1200 470 L 1260 293" class="arrow dashed" />
+  <path d="M 1200 470 L 1260 348" class="arrow dashed" />
+  <path d="M 660 590 L 740 590" class="arrow" />
+  <path d="M 630 575 C 700 540, 760 500, 820 470" class="arrow dashed" />
+  <path d="M 630 630 C 710 650, 820 670, 930 665" class="arrow dashed" />
+  <path d="M 740 245 C 680 245, 640 265, 620 282" class="arrow dashed" />
+  <path d="M 620 282 C 650 295, 680 300, 710 300" class="arrow dashed" />
+
+  <text x="338" y="195" class="small">consulta</text>
+  <text x="680" y="195" class="small">MCP / `predict_stock`</text>
+  <text x="978" y="287" class="small">DTOs HTTP → aplicación</text>
+  <text x="1210" y="250" class="small">modelo ONNX</text>
+  <text x="1210" y="307" class="small">features</text>
+  <text x="1210" y="359" class="small">mean/std</text>
+  <text x="674" y="565" class="small">validación operativa</text>
+
+  <rect x="740" y="755" width="460" height="140" class="group" />
+  <text x="970" y="786" text-anchor="middle" class="label">Flujo resumido de inferencia productiva</text>
+  <text x="970" y="816" text-anchor="middle" class="text">1. Onyx invoca la tool MCP `predict_stock`</text>
+  <text x="970" y="840" text-anchor="middle" class="text">2. FastAPI transforma el request y delega en `PredictStockUseCase`</text>
+  <text x="970" y="864" text-anchor="middle" class="text">3. `ProductionPreprocessor` arma la matriz usando Parquet precomputado</text>
+  <text x="970" y="888" text-anchor="middle" class="text">4. `ONNXModel` ejecuta inferencia y `ProductionPostprocessor` invierte el escalado</text>
+</svg>
