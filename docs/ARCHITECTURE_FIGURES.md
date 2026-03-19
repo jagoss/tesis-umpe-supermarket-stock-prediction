@@ -17,7 +17,7 @@ Texto de referencia sugerido en el cuerpo:
 Bloque listo para pegar:
 
 ```md
-![Figura 6. Arquitectura vigente del sistema de predicción e integración con Onyx](figures/architecture/architecture_01_current_system.svg)
+![Figura 6. Arquitectura vigente del sistema de predicción e integración con Onyx](figures/architecture/architecture_01_current_system.png)
 
 **Figura 6. Arquitectura vigente del sistema de predicción e integración con Onyx.** Diagrama de alto nivel de la arquitectura efectivamente implementada en el repositorio. La figura muestra la interacción entre el usuario, el stack conversacional de Onyx, el servidor de predicción organizado según Clean Architecture, los artefactos de inferencia en `ONNX` y `Parquet`, y los principales controles técnicos observables en la solución. Fuente: elaboración propia a partir de `README.md`, `.docs/data_serving_architecture.md`, `.docs/onyx_integration.md`, `server/infrastructure/container.py`, `server/interface/http/api.py` y `docker-compose.yml`.
 ```
