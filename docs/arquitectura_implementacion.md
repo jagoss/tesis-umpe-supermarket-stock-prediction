@@ -2,7 +2,7 @@
 
 La Figura 6 resume la arquitectura vigente del sistema, mostrando la separación por capas del servidor de predicción, su exposición por REST y MCP, y su integración con Onyx y con los artefactos de inferencia.
 
-![Figura 6. Arquitectura vigente del sistema de predicción e integración con Onyx](figures/architecture/architecture_01_current_system.svg)
+![Figura 6. Arquitectura vigente del sistema de predicción e integración con Onyx](figures/architecture/architecture_01_current_system.png)
 
 **Figura 6. Arquitectura vigente del sistema de predicción e integración con Onyx.** Diagrama de alto nivel de la arquitectura efectivamente implementada en el repositorio. La figura muestra la interacción entre el usuario, el stack conversacional de Onyx, el servidor de predicción organizado según Clean Architecture, los artefactos de inferencia en `ONNX` y `Parquet`, y los principales controles técnicos observables en la solución. Fuente: elaboración propia a partir de [README.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/README.md), [.docs/data_serving_architecture.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/.docs/data_serving_architecture.md), [.docs/onyx_integration.md](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/.docs/onyx_integration.md), [container.py](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/server/infrastructure/container.py), [api.py](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/server/interface/http/api.py) y [docker-compose.yml](/mnt/c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/docker-compose.yml).*
 
