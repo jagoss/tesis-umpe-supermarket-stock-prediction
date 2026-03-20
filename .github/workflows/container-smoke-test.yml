@@ -19,6 +19,30 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # The real parquet files are not committed (too large).
+      # The smoke test uses MODEL_BACKEND=dummy + PREPROCESSOR_BACKEND=basic so
+      # these files are never read at runtime — we only need them to satisfy the
+      # Dockerfile COPY instruction at build time.
+      - name: Create CI fixture parquet files
+        run: |
+          pip install pyarrow -q
+          python3 -c "
+          import pyarrow as pa, pyarrow.parquet as pq, os
+          os.makedirs('data', exist_ok=True)
+          pq.write_table(pa.table({
+            'store_nbr': pa.array(['1']),
+            'family':    pa.array(['A']),
+            'date':      pa.array(['2024-01-01']),
+            'feat1':     pa.array([0.0]),
+          }), 'data/precomputed_features.parquet')
+          pq.write_table(pa.table({
+            'store_nbr': pa.array(['1']),
+            'family':    pa.array(['A']),
+            'mean':      pa.array([0.0]),
+            'std':       pa.array([1.0]),
+          }), 'data/scaler_params.parquet')
+          "
+
       # Build the image from the Dockerfile in the repo root.
       # Tagged as prediction-server:test so it does not collide with any local image.
       - name: Build prediction server image
