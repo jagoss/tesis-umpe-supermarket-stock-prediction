@@ -1,6 +1,3 @@
-# Runtime dependencies — kept in sync with pyproject.toml [project.dependencies].
-# For development tools, install with: pip install -e ".[dev]"
-# For training pipeline deps, install with: pip install -e ".[training]"
 fastapi>=0.116
 starlette>=0.49.1
 uvicorn[standard]>=0.30,<0.32

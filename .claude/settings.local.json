@@ -52,7 +52,29 @@
       "Bash(git apply:*)",
       "Bash(git stash:*)",
       "Bash(find /c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction -type f \\\\\\(-name *.md -o -name *.txt -o -name *.rst -o -name docker-compose.yml -o -name *.yaml -o -name *.yml \\\\\\))",
-      "Bash(grep -r demo /c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction --include=*.md --include=*.yml --include=*.yaml --include=*.txt -n)"
+      "Bash(grep -r demo /c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction --include=*.md --include=*.yml --include=*.yaml --include=*.txt -n)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(where minikube:*)",
+      "Bash(/c/minikube/minikube.exe docker-env:*)",
+      "Bash(docker.exe version:*)",
+      "Bash(kubectl.exe -n stock-prediction logs deployment/prediction-server --tail=50)",
+      "Bash(printf:*)",
+      "Bash(xxd /c/Users/juana/PycharmProjects/tesis-umpe-supermarket-stock-prediction/requirements.txt)",
+      "Bash(kubectl.exe -n stock-prediction logs deployment/prediction-server --tail=30)",
+      "Bash(/c/minikube/minikube.exe image:*)",
+      "Bash(kubectl.exe -n stock-prediction delete pods -l app=prediction-server)",
+      "Bash(kubectl.exe -n stock-prediction get pods -w)",
+      "Bash(kubectl.exe -n stock-prediction logs deployment/prediction-server --tail=15 2>/dev/null)",
+      "Bash(docker.exe run:*)",
+      "Bash(docker.exe save:*)",
+      "Bash(/c/minikube/minikube.exe ssh:*)",
+      "Bash(kubectl.exe -n stock-prediction get pods)",
+      "Bash(kubectl.exe apply:*)",
+      "Bash(kubectl.exe -n stock-prediction logs prediction-server-64f8bf56bd-cb4jq --tail=20)",
+      "Bash(kubectl.exe -n stock-prediction logs prediction-server-64f8bf56bd-cb4jq --previous --tail=30 2>/dev/null)",
+      "Bash(kubectl.exe -n stock-prediction logs prediction-server-68866c8f86-gfcz4 --previous 2>/dev/null)",
+      "Bash(kubectl.exe -n stock-prediction get pod prediction-server-68866c8f86-gfcz4 -o jsonpath='{.status.containerStatuses[0].lastState.terminated.reason}')",
+      "Bash(kubectl.exe -n stock-prediction get pod prediction-server-68866c8f86-gfcz4 -o jsonpath='{.status.containerStatuses[0].lastState.terminated.exitCode}')"
     ]
   }
 }
