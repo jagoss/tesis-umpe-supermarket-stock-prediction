@@ -25,8 +25,8 @@ COPY --from=builder /install /usr/local
 COPY pyproject.toml ./
 COPY server/ ./server/
 
-# Create data directory — files are injected via volume mount in docker-compose / production
-RUN mkdir -p data
+# Copy data files needed at runtime (parquet only, not full CSVs)
+COPY data/precomputed_features.parquet data/scaler_params.parquet data/
 
 # Non-root user for security
 RUN adduser --disabled-password --gecos "" appuser \
@@ -37,7 +37,7 @@ USER appuser
 # MODEL_PATH is relative to /app — override via environment or volume mount.
 ENV PYTHONPATH=/app \
     MODEL_BACKEND=onnx \
-    MODEL_PATH=server/models/example_model.onnx \
+    MODEL_PATH=server/models/lightgbm_model.onnx \
     DEFAULT_PREDICTION_VALUE=0 \
     PREPROCESSOR_BACKEND=basic \
     DATA_PATH=data/precomputed_features.parquet \
