@@ -16,6 +16,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # The parquet data files are not committed to the repo (.gitignore /data/).
+      # They are stored as assets on the GitHub Release tagged "data-latest".
+      # To update the data files, delete the old release and re-create it:
+      #   gh release delete data-latest --yes
+      #   gh release create data-latest \
+      #     data/precomputed_features.parquet data/scaler_params.parquet \
+      #     --title "Data files" --notes "Pre-computed features and scaler params"
+      - name: Download data files from release
+        run: |
+          mkdir -p data
+          gh release download data-latest \
+            --pattern "precomputed_features.parquet" \
+            --pattern "scaler_params.parquet" \
+            --dir data/
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
