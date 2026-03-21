@@ -6,17 +6,17 @@ from datetime import date
 
 import pytest
 
-
-@pytest.fixture(params=["asyncio"])
-def anyio_backend(request: pytest.FixtureRequest) -> str:
-    """Restrict anyio async tests to asyncio only (trio is not installed)."""
-    return str(request.param)
-
 from server.application import (
     ModelRawPrediction,
     PredictStockInput,
     PreprocessedData,
 )
+
+
+@pytest.fixture(params=["asyncio"])
+def anyio_backend(request: pytest.FixtureRequest) -> str:
+    """Restrict anyio async tests to asyncio only (trio is not installed)."""
+    return str(request.param)
 
 
 @pytest.fixture()
