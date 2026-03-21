@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 from collections.abc import Generator
 from unittest.mock import MagicMock, patch
@@ -173,8 +174,7 @@ class TestRateLimitHandler:
 
         assert isinstance(response, JSONResponse)
         assert response.status_code == 429
-        import json
-        body = json.loads(response.body)
+        body = json.loads(bytes(response.body))
         assert body == {"detail": "Rate limit exceeded"}
 
 
