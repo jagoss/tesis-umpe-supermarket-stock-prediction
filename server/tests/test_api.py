@@ -4,10 +4,13 @@ from __future__ import annotations
 
 import os
 from collections.abc import Generator
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
+from fastapi import Request
 from fastapi.testclient import TestClient
+from slowapi.errors import RateLimitExceeded
+from starlette.responses import JSONResponse
 
 
 @pytest.fixture()
@@ -117,3 +120,85 @@ class TestPredictEndpoint:
         data = resp.json()
         for p in data["predictions"]:
             assert isinstance(p["quantity"], int)
+
+    def test_domain_error_returns_422(self, client: TestClient) -> None:
+        from server.domain import DomainError
+
+        with patch(
+            "server.interface.http.api.get_predict_use_case_singleton"
+        ) as mock_uc_factory:
+            mock_uc = MagicMock()
+            mock_uc.execute.side_effect = DomainError("model failed")
+            mock_uc_factory.return_value = mock_uc
+
+            payload = {
+                "product_id": "P1",
+                "store_id": "S1",
+                "start_date": "2026-03-02",
+                "end_date": "2026-03-04",
+            }
+            resp = client.post("/predict", json=payload)
+
+        assert resp.status_code == 422
+        assert "model failed" in resp.json()["detail"]
+
+    def test_unexpected_exception_returns_500(self, client: TestClient) -> None:
+        with patch(
+            "server.interface.http.api.get_predict_use_case_singleton"
+        ) as mock_uc_factory:
+            mock_uc = MagicMock()
+            mock_uc.execute.side_effect = RuntimeError("unexpected boom")
+            mock_uc_factory.return_value = mock_uc
+
+            payload = {
+                "product_id": "P1",
+                "store_id": "S1",
+                "start_date": "2026-03-02",
+                "end_date": "2026-03-04",
+            }
+            resp = client.post("/predict", json=payload)
+
+        assert resp.status_code == 500
+        assert resp.json()["detail"] == "internal server error"
+
+
+class TestRateLimitHandler:
+    def test_rate_limit_exceeded_handler_returns_429(self) -> None:
+        from server.interface.http.api import _rate_limit_exceeded_handler
+
+        mock_request = MagicMock(spec=Request)
+        mock_exc = MagicMock(spec=RateLimitExceeded)
+
+        response = _rate_limit_exceeded_handler(mock_request, mock_exc)
+
+        assert isinstance(response, JSONResponse)
+        assert response.status_code == 429
+        import json
+        body = json.loads(response.body)
+        assert body == {"detail": "Rate limit exceeded"}
+
+
+class TestLifespan:
+    def test_lifespan_initializes_use_case(self) -> None:
+        """Lifespan startup calls get_predict_use_case_singleton to warm up the DI container."""
+        import os
+
+        env = {"MODEL_BACKEND": "dummy", "DEFAULT_PREDICTION_VALUE": "0"}
+        with patch.dict(os.environ, env, clear=False):
+            import server.infrastructure.container as container_mod
+
+            container_mod._singleton_uc = None
+
+            with patch(
+                "server.interface.http.api.get_predict_use_case_singleton"
+            ) as mock_factory, patch(
+                "server.interface.http.api.configure_logging"
+            ):
+                mock_factory.return_value = MagicMock()
+
+                from server.interface.http.api import app
+
+                with TestClient(app):
+                    mock_factory.assert_called()
+
+            container_mod._singleton_uc = None
