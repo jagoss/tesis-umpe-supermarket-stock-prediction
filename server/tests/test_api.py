@@ -125,9 +125,7 @@ class TestPredictEndpoint:
     def test_domain_error_returns_422(self, client: TestClient) -> None:
         from server.domain import DomainError
 
-        with patch(
-            "server.interface.http.api.get_predict_use_case_singleton"
-        ) as mock_uc_factory:
+        with patch("server.interface.http.api.get_predict_use_case_singleton") as mock_uc_factory:
             mock_uc = MagicMock()
             mock_uc.execute.side_effect = DomainError("model failed")
             mock_uc_factory.return_value = mock_uc
@@ -144,9 +142,7 @@ class TestPredictEndpoint:
         assert "model failed" in resp.json()["detail"]
 
     def test_unexpected_exception_returns_500(self, client: TestClient) -> None:
-        with patch(
-            "server.interface.http.api.get_predict_use_case_singleton"
-        ) as mock_uc_factory:
+        with patch("server.interface.http.api.get_predict_use_case_singleton") as mock_uc_factory:
             mock_uc = MagicMock()
             mock_uc.execute.side_effect = RuntimeError("unexpected boom")
             mock_uc_factory.return_value = mock_uc
@@ -189,10 +185,9 @@ class TestLifespan:
 
             container_mod._singleton_uc = None
 
-            with patch(
-                "server.interface.http.api.get_predict_use_case_singleton"
-            ) as mock_factory, patch(
-                "server.interface.http.api.configure_logging"
+            with (
+                patch("server.interface.http.api.get_predict_use_case_singleton") as mock_factory,
+                patch("server.interface.http.api.configure_logging"),
             ):
                 mock_factory.return_value = MagicMock()
 
