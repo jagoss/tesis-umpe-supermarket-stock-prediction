@@ -13,6 +13,12 @@ from server.application import (
 )
 
 
+@pytest.fixture(params=["asyncio"])
+def anyio_backend(request: pytest.FixtureRequest) -> str:
+    """Restrict anyio async tests to asyncio only (trio is not installed)."""
+    return str(request.param)
+
+
 @pytest.fixture()
 def sample_input() -> PredictStockInput:
     """A 3-day prediction input."""
